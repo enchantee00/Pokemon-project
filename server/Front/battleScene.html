@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Battle</title>
+    <link rel="stylesheet" href="battleScene.css"> <!-- Add CSS for styles -->
+</head>
+<body>
+    <div class="battle-container">
+        <!-- Opponent's Pokémon -->
+        <div class="opponent-pokemon">
+            <div class="info">
+                <h3 id="opponent-name">Wild Pikachu</h3>
+                <p>Lv. <span id="opponent-level">5</span></p>
+                <div class="health-bar">
+                    <div id="opponent-health" style="width: 80%;"></div>
+                </div>
+            </div>
+            <img src="images/opponent-pokemon.png" alt="Opponent Pokémon" class="pokemon-sprite">
+        </div>
+
+        <!-- Player's Pokémon -->
+        <div class="player-pokemon">
+            <img src="images/player-pokemon.png" alt="Player Pokémon" class="pokemon-sprite">
+            <div class="info">
+                <h3 id="player-name">Charmander</h3>
+                <p>Lv. <span id="player-level">7</span></p>
+                <div class="health-bar">
+                    <div id="player-health" style="width: 90%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Menu -->
+        <div class="action-menu">
+            <button onclick="showMoves()">Moves</button>
+            <button onclick="runAway()">Run</button>
+        </div>
+
+        <!-- Moves Menu -->
+        <div class="moves-menu" id="moves-menu" style="display: none;">
+            <button onclick="useMove('Ember')">Ember</button>
+            <button onclick="useMove('Scratch')">Scratch</button>
+            <button onclick="useMove('Growl')">Growl</button>
+            <button onclick="useMove('Smokescreen')">Smokescreen</button>
+        </div>
+    </div>
+
+    <script>
+        function showMoves() {
+            document.getElementById('moves-menu').style.display = 'block';
+        }
+
+        function useMove(move) {
+            alert(`${move} used!`);
+            document.getElementById('moves-menu').style.display = 'none'; // Hide moves after selection
+        }
+
+        function runAway() {
+            alert('You ran away!');
+            window.location.href = 'main.html'; // Navigate back to the main page
+        }
+    </script>
+</body>
+</html>

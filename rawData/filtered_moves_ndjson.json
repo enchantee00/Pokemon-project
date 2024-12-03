@@ -1,0 +1,165 @@
+{"name": "absorb", "type": "grass", "power": 20, "accuracy": 1.0, "pp": 20}
+{"name": "acid", "type": "poison", "power": 40, "accuracy": 1.0, "pp": 30}
+{"name": "acid armor", "type": "poison", "power": null, "accuracy": null, "pp": 40}
+{"name": "agility", "type": "psychic", "power": null, "accuracy": null, "pp": 30}
+{"name": "amnesia", "type": "psychic", "power": null, "accuracy": null, "pp": 20}
+{"name": "aurora beam", "type": "ice", "power": 65, "accuracy": 1.0, "pp": 20}
+{"name": "barrage", "type": "normal", "power": 15, "accuracy": 0.85, "pp": 20}
+{"name": "barrier", "type": "psychic", "power": null, "accuracy": null, "pp": 30}
+{"name": "bide", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "bind", "type": "normal", "power": 15, "accuracy": 0.85, "pp": 20}
+{"name": "bite", "type": "normal", "power": 60, "accuracy": 1.0, "pp": 25}
+{"name": "blizzard", "type": "ice", "power": 120, "accuracy": 0.9, "pp": 5}
+{"name": "body slam", "type": "normal", "power": 85, "accuracy": 1.0, "pp": 15}
+{"name": "bone club", "type": "ground", "power": 65, "accuracy": 0.85, "pp": 20}
+{"name": "bonemerang", "type": "ground", "power": 50, "accuracy": 0.9, "pp": 10}
+{"name": "bubble", "type": "water", "power": 20, "accuracy": 1.0, "pp": 30}
+{"name": "bubble beam", "type": "water", "power": 65, "accuracy": 1.0, "pp": 20}
+{"name": "clamp", "type": "water", "power": 35, "accuracy": 0.85, "pp": 10}
+{"name": "comet punch", "type": "normal", "power": 18, "accuracy": 0.85, "pp": 15}
+{"name": "confuse ray", "type": "ghost", "power": null, "accuracy": 1.0, "pp": 10}
+{"name": "confusion", "type": "psychic", "power": 50, "accuracy": 1.0, "pp": 25}
+{"name": "constrict", "type": "normal", "power": 10, "accuracy": 1.0, "pp": 35}
+{"name": "conversion", "type": "normal", "power": null, "accuracy": null, "pp": 30}
+{"name": "counter", "type": "fighting", "power": null, "accuracy": 1.0, "pp": 20}
+{"name": "crabhammer", "type": "water", "power": 90, "accuracy": 0.85, "pp": 10}
+{"name": "cut", "type": "normal", "power": 50, "accuracy": 0.95, "pp": 30}
+{"name": "defense curl", "type": "normal", "power": null, "accuracy": null, "pp": 40}
+{"name": "dig", "type": "ground", "power": 60, "accuracy": 1.0, "pp": 10}
+{"name": "disable", "type": "normal", "power": null, "accuracy": 0.55, "pp": 20}
+{"name": "dizzy punch", "type": "normal", "power": 70, "accuracy": 1.0, "pp": 10}
+{"name": "double kick", "type": "fighting", "power": 30, "accuracy": 1.0, "pp": 30}
+{"name": "double slap", "type": "normal", "power": 15, "accuracy": 0.85, "pp": 10}
+{"name": "double team", "type": "normal", "power": null, "accuracy": null, "pp": 15}
+{"name": "double-edge", "type": "normal", "power": 100, "accuracy": 1.0, "pp": 15}
+{"name": "dragon rage", "type": "dragon", "power": null, "accuracy": 1.0, "pp": 10}
+{"name": "dream eater", "type": "psychic", "power": 100, "accuracy": 1.0, "pp": 15}
+{"name": "drill peck", "type": "flying", "power": 80, "accuracy": 1.0, "pp": 20}
+{"name": "earthquake", "type": "ground", "power": 100, "accuracy": 1.0, "pp": 10}
+{"name": "egg bomb", "type": "normal", "power": 100, "accuracy": 0.75, "pp": 10}
+{"name": "ember", "type": "fire", "power": 40, "accuracy": 1.0, "pp": 25}
+{"name": "explosion", "type": "normal", "power": 170, "accuracy": 1.0, "pp": 5}
+{"name": "fire blast", "type": "fire", "power": 120, "accuracy": 0.85, "pp": 5}
+{"name": "fire punch", "type": "fire", "power": 75, "accuracy": 1.0, "pp": 15}
+{"name": "fire spin", "type": "fire", "power": 35, "accuracy": 0.85, "pp": 15}
+{"name": "fissure", "type": "ground", "power": null, "accuracy": null, "pp": 5}
+{"name": "flamethrower", "type": "fire", "power": 95, "accuracy": 1.0, "pp": 15}
+{"name": "flash", "type": "normal", "power": null, "accuracy": 0.7, "pp": 20}
+{"name": "fly", "type": "flying", "power": 70, "accuracy": 0.95, "pp": 15}
+{"name": "focus energy", "type": "normal", "power": null, "accuracy": null, "pp": 30}
+{"name": "fury attack", "type": "normal", "power": 15, "accuracy": 0.85, "pp": 20}
+{"name": "fury swipes", "type": "normal", "power": 18, "accuracy": 0.8, "pp": 15}
+{"name": "glare", "type": "normal", "power": null, "accuracy": 0.75, "pp": 30}
+{"name": "growl", "type": "normal", "power": null, "accuracy": 1.0, "pp": 40}
+{"name": "growth", "type": "normal", "power": null, "accuracy": null, "pp": 40}
+{"name": "guillotine", "type": "normal", "power": null, "accuracy": null, "pp": 5}
+{"name": "gust", "type": "normal", "power": 40, "accuracy": 1.0, "pp": 35}
+{"name": "harden", "type": "normal", "power": null, "accuracy": null, "pp": 30}
+{"name": "haze", "type": "ice", "power": null, "accuracy": null, "pp": 30}
+{"name": "headbutt", "type": "normal", "power": 70, "accuracy": 1.0, "pp": 15}
+{"name": "high jump kick", "type": "fighting", "power": 85, "accuracy": 0.9, "pp": 20}
+{"name": "horn attack", "type": "normal", "power": 65, "accuracy": 1.0, "pp": 25}
+{"name": "horn drill", "type": "normal", "power": null, "accuracy": null, "pp": 5}
+{"name": "hydro pump", "type": "water", "power": 120, "accuracy": 0.8, "pp": 5}
+{"name": "hyper beam", "type": "normal", "power": 150, "accuracy": 0.9, "pp": 5}
+{"name": "hyper fang", "type": "normal", "power": 80, "accuracy": 0.9, "pp": 15}
+{"name": "hypnosis", "type": "psychic", "power": null, "accuracy": 0.6, "pp": 20}
+{"name": "ice beam", "type": "ice", "power": 95, "accuracy": 1.0, "pp": 10}
+{"name": "ice punch", "type": "ice", "power": 75, "accuracy": 1.0, "pp": 15}
+{"name": "jump kick", "type": "fighting", "power": 70, "accuracy": 0.95, "pp": 25}
+{"name": "karate chop", "type": "normal", "power": 50, "accuracy": 1.0, "pp": 25}
+{"name": "kinesis", "type": "psychic", "power": null, "accuracy": 0.8, "pp": 15}
+{"name": "leech life", "type": "bug", "power": 20, "accuracy": 1.0, "pp": 15}
+{"name": "leech seed", "type": "grass", "power": null, "accuracy": 0.9, "pp": 10}
+{"name": "leer", "type": "normal", "power": null, "accuracy": 1.0, "pp": 30}
+{"name": "lick", "type": "ghost", "power": 20, "accuracy": 1.0, "pp": 30}
+{"name": "light screen", "type": "psychic", "power": null, "accuracy": null, "pp": 30}
+{"name": "lovely kiss", "type": "normal", "power": null, "accuracy": 0.75, "pp": 10}
+{"name": "low kick", "type": "fighting", "power": 50, "accuracy": 0.9, "pp": 20}
+{"name": "meditate", "type": "psychic", "power": null, "accuracy": null, "pp": 40}
+{"name": "mega drain", "type": "grass", "power": 40, "accuracy": 1.0, "pp": 10}
+{"name": "mega kick", "type": "normal", "power": 120, "accuracy": 0.75, "pp": 5}
+{"name": "mega punch", "type": "normal", "power": 80, "accuracy": 0.85, "pp": 20}
+{"name": "metronome", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "mimic", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "minimize", "type": "normal", "power": null, "accuracy": null, "pp": 20}
+{"name": "mirror move", "type": "flying", "power": null, "accuracy": null, "pp": 20}
+{"name": "mist", "type": "ice", "power": null, "accuracy": null, "pp": 30}
+{"name": "night shade", "type": "ghost", "power": null, "accuracy": 1.0, "pp": 15}
+{"name": "pay day", "type": "normal", "power": 40, "accuracy": 1.0, "pp": 20}
+{"name": "peck", "type": "flying", "power": 35, "accuracy": 1.0, "pp": 35}
+{"name": "petal dance", "type": "grass", "power": 120, "accuracy": 1.0, "pp": 10}
+{"name": "pin missile", "type": "bug", "power": 14, "accuracy": 0.85, "pp": 20}
+{"name": "poison gas", "type": "poison", "power": null, "accuracy": 0.55, "pp": 40}
+{"name": "poison powder", "type": "poison", "power": null, "accuracy": 0.75, "pp": 35}
+{"name": "poison sting", "type": "poison", "power": 15, "accuracy": 1.0, "pp": 35}
+{"name": "pound", "type": "normal", "power": 40, "accuracy": 1.0, "pp": 35}
+{"name": "psybeam", "type": "psychic", "power": 65, "accuracy": 1.0, "pp": 20}
+{"name": "psychic", "type": "psychic", "power": 90, "accuracy": 1.0, "pp": 10}
+{"name": "psywave", "type": "psychic", "power": null, "accuracy": 0.8, "pp": 15}
+{"name": "quick attack", "type": "normal", "power": 40, "accuracy": 1.0, "pp": 30}
+{"name": "rage", "type": "normal", "power": 20, "accuracy": 1.0, "pp": 20}
+{"name": "razor leaf", "type": "grass", "power": 55, "accuracy": 0.95, "pp": 25}
+{"name": "razor wind", "type": "normal", "power": 80, "accuracy": 0.75, "pp": 10}
+{"name": "recover", "type": "normal", "power": null, "accuracy": null, "pp": 20}
+{"name": "reflect", "type": "psychic", "power": null, "accuracy": null, "pp": 20}
+{"name": "rest", "type": "psychic", "power": null, "accuracy": null, "pp": 10}
+{"name": "roar", "type": "normal", "power": null, "accuracy": 1.0, "pp": 20}
+{"name": "rock slide", "type": "rock", "power": 75, "accuracy": 0.9, "pp": 10}
+{"name": "rock throw", "type": "rock", "power": 50, "accuracy": 0.65, "pp": 15}
+{"name": "rolling kick", "type": "fighting", "power": 60, "accuracy": 0.85, "pp": 15}
+{"name": "sand attack", "type": "normal", "power": null, "accuracy": 1.0, "pp": 15}
+{"name": "scratch", "type": "normal", "power": 40, "accuracy": 1.0, "pp": 35}
+{"name": "screech", "type": "normal", "power": null, "accuracy": 0.85, "pp": 40}
+{"name": "seismic toss", "type": "fighting", "power": null, "accuracy": 1.0, "pp": 20}
+{"name": "self-destruct", "type": "normal", "power": 200, "accuracy": 1.0, "pp": 5}
+{"name": "sharpen", "type": "normal", "power": null, "accuracy": null, "pp": 30}
+{"name": "sing", "type": "normal", "power": null, "accuracy": 0.55, "pp": 15}
+{"name": "skull bash", "type": "normal", "power": 100, "accuracy": 1.0, "pp": 15}
+{"name": "sky attack", "type": "flying", "power": 140, "accuracy": 0.9, "pp": 5}
+{"name": "slam", "type": "normal", "power": 80, "accuracy": 0.75, "pp": 20}
+{"name": "slash", "type": "normal", "power": 70, "accuracy": 1.0, "pp": 20}
+{"name": "sleep powder", "type": "grass", "power": null, "accuracy": 0.75, "pp": 15}
+{"name": "sludge", "type": "poison", "power": 65, "accuracy": 1.0, "pp": 20}
+{"name": "smog", "type": "poison", "power": 20, "accuracy": 0.7, "pp": 20}
+{"name": "smokescreen", "type": "normal", "power": null, "accuracy": 1.0, "pp": 20}
+{"name": "soft-boiled", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "solar beam", "type": "grass", "power": 120, "accuracy": 1.0, "pp": 10}
+{"name": "sonic boom", "type": "normal", "power": null, "accuracy": 0.9, "pp": 20}
+{"name": "spike cannon", "type": "normal", "power": 20, "accuracy": 1.0, "pp": 15}
+{"name": "splash", "type": "normal", "power": null, "accuracy": null, "pp": 40}
+{"name": "spore", "type": "grass", "power": null, "accuracy": 1.0, "pp": 15}
+{"name": "stomp", "type": "normal", "power": 65, "accuracy": 1.0, "pp": 20}
+{"name": "strength", "type": "normal", "power": 80, "accuracy": 1.0, "pp": 15}
+{"name": "string shot", "type": "bug", "power": null, "accuracy": 0.95, "pp": 40}
+{"name": "struggle", "type": "normal", "power": 50, "accuracy": 1.0, "pp": null}
+{"name": "stun spore", "type": "grass", "power": null, "accuracy": 0.75, "pp": 30}
+{"name": "submission", "type": "fighting", "power": 80, "accuracy": 0.8, "pp": 25}
+{"name": "substitute", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "super fang", "type": "normal", "power": null, "accuracy": 0.9, "pp": 10}
+{"name": "supersonic", "type": "normal", "power": null, "accuracy": 0.55, "pp": 20}
+{"name": "surf", "type": "water", "power": 95, "accuracy": 1.0, "pp": 15}
+{"name": "swift", "type": "normal", "power": 60, "accuracy": null, "pp": 20}
+{"name": "swords dance", "type": "normal", "power": null, "accuracy": null, "pp": 30}
+{"name": "tackle", "type": "normal", "power": 35, "accuracy": 0.95, "pp": 35}
+{"name": "tail whip", "type": "normal", "power": null, "accuracy": 1.0, "pp": 30}
+{"name": "take down", "type": "normal", "power": 90, "accuracy": 0.85, "pp": 20}
+{"name": "teleport", "type": "psychic", "power": null, "accuracy": null, "pp": 20}
+{"name": "thrash", "type": "normal", "power": 120, "accuracy": 1.0, "pp": 10}
+{"name": "thunder", "type": "electric", "power": 120, "accuracy": 0.7, "pp": 10}
+{"name": "thunder punch", "type": "electric", "power": 75, "accuracy": 1.0, "pp": 15}
+{"name": "thunder shock", "type": "electric", "power": 40, "accuracy": 1.0, "pp": 30}
+{"name": "thunder wave", "type": "electric", "power": null, "accuracy": 1.0, "pp": 20}
+{"name": "thunderbolt", "type": "electric", "power": 95, "accuracy": 1.0, "pp": 15}
+{"name": "toxic", "type": "poison", "power": null, "accuracy": 0.85, "pp": 10}
+{"name": "transform", "type": "normal", "power": null, "accuracy": null, "pp": 10}
+{"name": "tri attack", "type": "normal", "power": 80, "accuracy": 1.0, "pp": 10}
+{"name": "twineedle", "type": "bug", "power": 25, "accuracy": 1.0, "pp": 20}
+{"name": "vice grip", "type": "normal", "power": 55, "accuracy": 1.0, "pp": 30}
+{"name": "vine whip", "type": "grass", "power": 35, "accuracy": 1.0, "pp": 10}
+{"name": "water gun", "type": "water", "power": 40, "accuracy": 1.0, "pp": 25}
+{"name": "waterfall", "type": "water", "power": 80, "accuracy": 1.0, "pp": 15}
+{"name": "whirlwind", "type": "normal", "power": null, "accuracy": 0.85, "pp": 20}
+{"name": "wing attack", "type": "flying", "power": 35, "accuracy": 1.0, "pp": 35}
+{"name": "withdraw", "type": "water", "power": null, "accuracy": null, "pp": 40}
+{"name": "wrap", "type": "normal", "power": 15, "accuracy": 0.9, "pp": 20}

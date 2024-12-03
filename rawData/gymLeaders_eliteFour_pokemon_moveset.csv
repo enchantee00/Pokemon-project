@@ -1,0 +1,191 @@
+GymLeaderName,Pokemon,Move,Pokemon_id
+Brock,Geodude,tackle,2
+Brock,Geodude,defense curl,2
+Brock,Onix,tackle,3
+Brock,Onix,screech,3
+Brock,Onix,bind,3
+Misty,Staryu,tackle,4
+Misty,Staryu,water gun,4
+Misty,Staryu,harden,4
+Misty,Starmie,tackle,5
+Misty,Starmie,water gun,5
+Misty,Starmie,harden,5
+Misty,Starmie,bubblebeam,5
+Lt. Surge,Voltorb,tackle,6
+Lt. Surge,Voltorb,screech,6
+Lt. Surge,Pikachu,thundershock,7
+Lt. Surge,Pikachu,growl,7
+Lt. Surge,Pikachu,thunder wave,7
+Lt. Surge,Raichu,thundershock,8
+Lt. Surge,Raichu,growl,8
+Lt. Surge,Raichu,thunderbolt,8
+Erika,Victreebel,razor leaf,9
+Erika,Victreebel,wrap,9
+Erika,Victreebel,poisonpowder,9
+Erika,Tangela,vine whip,10
+Erika,Tangela,bind,10
+Erika,Tangela,stun spore,10
+Erika,Tangela,constrict,10
+Erika,Vileplume,razor leaf,11
+Erika,Vileplume,acid,11
+Erika,Vileplume,stun spore,11
+Koga,Koffing1,smog,12
+Koga,Koffing1,sludge,12
+Koga,Koffing2,toxic,13
+Koga,Koffing2,selfdestruct,13
+Koga,Muk,sludge,14
+Koga,Muk,disable,14
+Koga,Muk,acid armor,14
+Koga,Weezing,smog,15
+Koga,Weezing,sludge,15
+Koga,Weezing,toxic,15
+Koga,Weezing,selfdestruct,15
+Sabrina,Kadabra,psybeam,16
+Sabrina,Kadabra,recover,16
+Sabrina,Kadabra,psychic,16
+Sabrina,Kadabra,reflect,16
+Sabrina,Mr. Mime,barrier,17
+Sabrina,Mr. Mime,confusion,17
+Sabrina,Mr. Mime,light screen,17
+Sabrina,Mr. Mime,psychic,17
+Sabrina,Venomoth,psychic,18
+Sabrina,Venomoth,sleep powder,18
+Sabrina,Venomoth,poisonpowder,18
+Sabrina,Venomoth,stun spore,18
+Sabrina,Alakazam,psybeam,19
+Sabrina,Alakazam,recover,19
+Sabrina,Alakazam,psychic,19
+Sabrina,Alakazam,reflect,19
+Blaine,Growlithe,ember,20
+Blaine,Growlithe,leer,20
+Blaine,Growlithe,roar,20
+Blaine,Ponyta,ember,21
+Blaine,Ponyta,stomp,21
+Blaine,Ponyta,tail whip,21
+Blaine,Ponyta,growl,21
+Blaine,Rapidash,stomp,22
+Blaine,Rapidash,ember,22
+Blaine,Rapidash,fire spin,22
+Blaine,Arcanine,ember,23
+Blaine,Arcanine,roar,23
+Blaine,Arcanine,leer,23
+Blaine,Arcanine,take down,23
+Giovanni,Rhyhorn,stomp,24
+Giovanni,Rhyhorn,tail whip,24
+Giovanni,Rhyhorn,fury attack,24
+Giovanni,Dugtrio,slash,25
+Giovanni,Dugtrio,earthquake,25
+Giovanni,Dugtrio,rock slide,25
+Giovanni,Dugtrio,substitute,25
+Giovanni,Nidoqueen,body slam,26
+Giovanni,Nidoqueen,thunder,26
+Giovanni,Nidoqueen,earthquake,26
+Giovanni,Nidoqueen,poison sting,26
+Giovanni,Nidoking,thrash,27
+Giovanni,Nidoking,earthquake,27
+Giovanni,Nidoking,thunder,27
+Giovanni,Nidoking,rock slide,27
+Giovanni,Rhydon,stomp,28
+Giovanni,Rhydon,earthquake,28
+Giovanni,Rhydon,horn drill,28
+Giovanni,Rhydon,rock slide,28
+Lorelei,Dewgong,aurora beam,29
+Lorelei,Dewgong,rest,29
+Lorelei,Dewgong,take down,29
+Lorelei,Dewgong,growl,29
+Lorelei,Cloyster,ice beam,30
+Lorelei,Cloyster,clamp,30
+Lorelei,Cloyster,supersonic,30
+Lorelei,Cloyster,spike cannon,30
+Lorelei,Slowbro,psychic,31
+Lorelei,Slowbro,amnesia,31
+Lorelei,Slowbro,withdraw,31
+Lorelei,Slowbro,water gun,31
+Lorelei,Jynx,ice punch,32
+Lorelei,Jynx,lovely kiss,32
+Lorelei,Jynx,psychic,32
+Lorelei,Jynx,doubleslap,32
+Lorelei,Lapras,blizzard,33
+Lorelei,Lapras,body slam,33
+Lorelei,Lapras,confuse ray,33
+Lorelei,Lapras,hydro pump,33
+Bruno,Onix,rock throw,34
+Bruno,Onix,rage,34
+Bruno,Onix,slam,34
+Bruno,Onix,harden,34
+Bruno,Hitmonchan,ice punch,35
+Bruno,Hitmonchan,thunderpunch,35
+Bruno,Hitmonchan,counter,35
+Bruno,Hitmonchan,agility,35
+Bruno,Hitmonlee,high jump kick,36
+Bruno,Hitmonlee,counter,36
+Bruno,Hitmonlee,body slam,36
+Bruno,Hitmonlee,focus energy,36
+Bruno,Machamp,strength,37
+Bruno,Machamp,karate chop,37
+Bruno,Machamp,leer,37
+Bruno,Machamp,fissure,37
+Agatha,Gengar,confuse ray,38
+Agatha,Gengar,night shade,38
+Agatha,Gengar,hypnosis,38
+Agatha,Gengar,dream eater,38
+Agatha,Golbat,wing attack,39
+Agatha,Golbat,bite,39
+Agatha,Golbat,confuse ray,39
+Agatha,Golbat,supersonic,39
+Agatha,Haunter,confuse ray,40
+Agatha,Haunter,night shade,40
+Agatha,Haunter,hypnosis,40
+Agatha,Haunter,dream eater,40
+Agatha,Arbok,acid,41
+Agatha,Arbok,screech,41
+Agatha,Arbok,glare,41
+Agatha,Arbok,bite,41
+Agatha,Gengar,confuse ray,42
+Agatha,Gengar,night shade,42
+Agatha,Gengar,toxic,42
+Agatha,Gengar,dream eater,42
+Lance,Gyarados,hydro pump,43
+Lance,Gyarados,dragon rage,43
+Lance,Gyarados,leer,43
+Lance,Gyarados,hyper beam,43
+Lance,Dragonair1,agility,44
+Lance,Dragonair1,slam,44
+Lance,Dragonair1,dragon rage,44
+Lance,Dragonair1,hyper beam,44
+Lance,Dragonair2,agility,45
+Lance,Dragonair2,slam,45
+Lance,Dragonair2,dragon rage,45
+Lance,Dragonair2,hyper beam,45
+Lance,Aerodactyl,supersonic,46
+Lance,Aerodactyl,bite,46
+Lance,Aerodactyl,take down,46
+Lance,Aerodactyl,hyper beam,46
+Lance,Dragonite,agility,47
+Lance,Dragonite,slam,47
+Lance,Dragonite,dragon rage,47
+Lance,Dragonite,hyper beam,47
+Blue,Pidgeot,wing attack,48
+Blue,Pidgeot,agility,48
+Blue,Pidgeot,sky attack,48
+Blue,Pidgeot,whirlwind,48
+Blue,Alakazam,psychic,49
+Blue,Alakazam,reflect,49
+Blue,Alakazam,recover,49
+Blue,Alakazam,psybeam,49
+Blue,Rhydon,earthquake,50
+Blue,Rhydon,horn drill,50
+Blue,Rhydon,rock slide,50
+Blue,Rhydon,stomp,50
+Blue,Charizard,flamethrower,51
+Blue,Charizard,slash,51
+Blue,Charizard,fire spin,51
+Blue,Charizard,rage,51
+Blue,Blastoise,hydro pump,52
+Blue,Blastoise,blizzard,52
+Blue,Blastoise,bite,52
+Blue,Blastoise,withdraw,52
+Blue,Venusaur,razor leaf,53
+Blue,Venusaur,growth,53
+Blue,Venusaur,solarbeam,53
+Blue,Venusaur,sleep powder,53
