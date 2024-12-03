@@ -50,6 +50,8 @@ class PokeDex(db.Model):
     att = db.Column(db.Integer, nullable=False)
     def_stat = db.Column(db.Integer, nullable=False)
     spd = db.Column(db.Integer, nullable=False)
+    front_img = db.Column(db.String(255), nullable=True)
+    back_img = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 class Move(db.Model):

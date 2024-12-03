@@ -7,12 +7,15 @@ import random
 import traceback
 from collections import defaultdict
 from sqlalchemy.sql import func
+from flask_cors import CORS
 
 
 
 app = Flask(__name__)
 init_app(app)
 bcrypt = Bcrypt(app)
+CORS(app)  # 모든 도메인에서의 요청 허용
+
 
 
 @app.errorhandler(404)
@@ -217,14 +220,16 @@ def get_pokemon_by_trainer(trainer_id):
             Pokemon.experience, 
             Pokemon.hp, 
             Pokemon.trainer_id, 
-            Pokemon.created_at, 
+            Pokemon.created_at,
             PokeDex.name.label("pokedex_name"), 
             PokeDex.type1, 
             PokeDex.type2, 
             PokeDex.hp_stat, 
             PokeDex.att, 
             PokeDex.def_stat, 
-            PokeDex.spd
+            PokeDex.spd,
+            PokeDex.front_img,
+            PokeDex.back_img
         ).join(PokeDex, Pokemon.pokedex_id == PokeDex.id).filter(Pokemon.trainer_id == trainer_id).all()
 
         if not pokemon:
@@ -244,6 +249,8 @@ def get_pokemon_by_trainer(trainer_id):
             'def': p.def_stat,
             'spd': p.spd,
             'trainer_id': p.trainer_id,
+            'front_img_url':p.front_img,
+            'back_img_url':p.back_img,
             'created_at': p.created_at,
         } for p in pokemon])
     except SQLAlchemyError as e:
