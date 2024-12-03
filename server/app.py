@@ -28,7 +28,7 @@ def internal_server_error(e):
 
 @app.route('/')
 def home():
-    return "Hello, World!"
+    return "Hello! World!"
 
 @app.route('/signup', methods=['POST'])
 def signup():
