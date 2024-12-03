@@ -1,14 +1,18 @@
 from flask import Flask, request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
+from flask_bcrypt import Bcrypt
 from database_config import init_app, db
 from models import Trainer, Pokemon, PokeDex, Move, PokemonMove,WildBattleRecord, GymBattleRecord, TypeEffectiveness
 import random
 import traceback
 from collections import defaultdict
+from sqlalchemy.sql import func
+
 
 
 app = Flask(__name__)
 init_app(app)
+bcrypt = Bcrypt(app)
 
 
 @app.errorhandler(404)
@@ -22,10 +26,118 @@ def internal_server_error(e):
     return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-
 @app.route('/')
 def home():
     return "Hello, World!"
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+
+    name = data.get('name')
+    password = data.get('password')
+
+    if not name or not password:
+        return jsonify({"error": "Name and password are required"}), 400
+
+    # Check if name already exists
+    existing_trainer = Trainer.query.filter_by(name=name).first()
+    if existing_trainer:
+        return jsonify({"error": "Trainer with this name already exists"}), 400
+
+    # Hash the password
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    # Create new Trainer
+    new_trainer = Trainer(name=name, badges=0, role="Trainer", password=hashed_password)
+    db.session.add(new_trainer)
+    db.session.commit()
+
+
+    # Randomly select a Pokemon from PokeDex
+    pokedex_entry = db.session.query(PokeDex).order_by(func.random()).first()
+    if not pokedex_entry:
+        return jsonify({"error": "No Pokemon available in the PokeDex"}), 400
+
+    # Calculate max_hp
+    max_hp = ((2 * pokedex_entry.hp_stat + 100) * 5) / 100 + 10  # Level 5
+
+    # Add Pokemon to the new trainer
+    new_pokemon = Pokemon(
+        pokedex_id=pokedex_entry.id,
+        name=pokedex_entry.name,
+        level=5,
+        hp=max_hp,
+        experience=0,
+        trainer_id=new_trainer.id
+    )
+    db.session.add(new_pokemon)
+    db.session.commit()  # Commit to get the new pokemon's ID
+
+    # Assign Moves to the new Pokemon
+    moves = []
+    if pokedex_entry.type1:
+        type1_moves = db.session.query(Move).filter_by(type=pokedex_entry.type1.lower()).all()
+        if type1_moves:
+            moves.append(random.choice(type1_moves))  # Random move for type1
+
+    if pokedex_entry.type2:  # If type2 exists
+        type2_moves = db.session.query(Move).filter_by(type=pokedex_entry.type2.lower()).all()
+        if type2_moves:
+            moves.append(random.choice(type2_moves))  # Random move for type2
+
+    # Add the moves to PokemonMoves
+    for move in moves:
+        new_pokemon_move = PokemonMove(
+            pokemon_id=new_pokemon.id,
+            move_id=move.id,
+            remaining_uses=move.pp  # Set to the move's max PP
+        )
+        db.session.add(new_pokemon_move)
+
+    # Final Commit
+    db.session.commit()
+
+    return jsonify({
+        "message": "Trainer registered successfully",
+        "trainer": {
+            "id": new_trainer.id,
+            "name": new_trainer.name,
+            "role": new_trainer.role
+        },
+        "pokemon": {
+            "id": new_pokemon.id,
+            "name": new_pokemon.name,
+            "level": new_pokemon.level,
+            "hp": new_pokemon.hp,
+            "experience": new_pokemon.experience,
+            "moves": [{"id": move.id, "name": move.name, "type": move.type} for move in moves]
+        }
+    }), 201
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    name = data.get('name')
+    password = data.get('password')
+
+    if not name or not password:
+        return jsonify({"error": "Name and password are required"}), 400
+
+    # Check if trainer exists
+    trainer = Trainer.query.filter_by(name=name).first()
+    if not trainer:
+        return jsonify({"error": "Invalid name or password"}), 401
+
+    # Verify the password
+    if not bcrypt.check_password_hash(trainer.password, password):
+        return jsonify({"error": "Invalid name or password"}), 401
+
+    return jsonify({"message": "Login successful", "trainer_id": trainer.id}), 200
+
+
 
 # --- Trainers API ---
 @app.route('/trainers', methods=['GET'])

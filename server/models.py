@@ -7,11 +7,18 @@ class Trainer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     badges = db.Column(db.Integer, default=0)
-    role = db.Column(db.String(50))  # e.g., Trainer or Gym Leader
+    role = db.Column(db.String(50))
+    password = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     # Relationships
-    pokemon = db.relationship('Pokemon', backref='trainer', lazy=True)
+    pokemon = db.relationship(
+        'Pokemon', 
+        backref='trainer', 
+        lazy=True, 
+        cascade='all, delete-orphan'  # Cascade 설정
+    )
+
 
 class Pokemon(db.Model):
     __tablename__ = 'pokemon'
@@ -25,7 +32,13 @@ class Pokemon(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     # Relationships
-    moves = db.relationship('PokemonMove', backref='pokemon', lazy=True)
+    moves = db.relationship(
+        'PokemonMove', 
+        backref='pokemon', 
+        lazy=True, 
+        cascade='all, delete-orphan'  # Cascade 설정
+    )
+
 
 class PokeDex(db.Model):
     __tablename__ = 'pokedex'
