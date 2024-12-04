@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Options</title>
+    <link rel="stylesheet" href="battle.css"> <!-- Reuse or create a new CSS file -->
+</head>
+<body>
+    <div class="battle-container">
+        <h1>Choose Your Battle</h1>
+        <div class="button-group">
+            <button onclick="startBattle('wild')">Battle Wild Pokémon</button>
+            <button onclick="startBattle('gym')">Challenge Gym Leaders</button>
+        </div>
+    </div>
+
+    <script>
+        function startBattle(battleType) {
+            // Store the battle type in localStorage for later use
+            localStorage.setItem('battle_type', battleType);
+
+            // Redirect to the Pokémon list page
+            location.href = 'choosePokemon.html';
+        }
+    </script>
+</body>
+</html>

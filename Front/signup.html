@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+            <div class="input-group">
+                <label for="trainername">Trainer Name</label>
+                <input type="text" id="trainername" name="trainername" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000';  // Your base URL
+        const form = document.getElementById('signup-form');
+        const messageElement = document.getElementById('message');
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();  // Prevent the default form submission
+
+            const trainername = document.getElementById('trainername').value;
+            const password = document.getElementById('password').value;
+
+            // Create the request body
+            const body = {
+                name: trainername,
+                password: password
+            };
+
+            try {
+                // Send a POST request to the signup API
+                const response = await fetch(`${baseUrl}/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Sign Up failed');
+                }
+
+                // Parse the response JSON
+                const data = await response.json();
+
+                if (data.message === 'Trainer registered successfully') {
+                    // Display success message and details
+                    messageElement.innerHTML = `Sign Up Successful! Welcome ${data.trainer.name}. Your Pokémon is ${data.pokemon.name}.`;
+
+                    // Redirect to the login page after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'login.html';  // Redirect to login page
+                    }, 3000);  // 3 seconds delay for the user to read the success message
+                } else {
+                    messageElement.innerHTML = `Error: ${data.message}`;
+                }
+            } catch (error) {
+                console.error('Error signing up:', error);
+                messageElement.innerHTML = 'An error occurred while signing up. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>

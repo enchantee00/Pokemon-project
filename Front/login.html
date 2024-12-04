@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <div class="input-group">
+                <label for="trainername">Trainer Name</label>
+                <input type="text" id="trainername" name="trainername" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Sign-Up Button -->
+        <div class="signup-container">
+            <button onclick="window.location.href='signup.html'">Sign Up</button>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000';  // Your base URL
+        const form = document.getElementById('login-form');
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();  // Prevent the default form submission
+
+            const trainername = document.getElementById('trainername').value;
+            const password = document.getElementById('password').value;
+
+            // Create the request body
+            const body = {
+                name: trainername,
+                password: password
+            };
+
+            try {
+                // Send a POST request to the login API
+                const response = await fetch(`${baseUrl}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                // Parse the response JSON
+                const data = await response.json();
+
+                if (data.message === 'Login successful') {
+                    // Store the trainer ID in local storage (or use it however you like)
+                    localStorage.setItem('trainer_id', data.trainer_id);
+
+                    // Redirect to the main page (or wherever you want to go after login)
+                    window.location.href = 'main.html';  // Or use your own redirect URL
+                } else {
+                    alert('Login failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error logging in:', error);
+                alert('An error occurred while logging in. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
