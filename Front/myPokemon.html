@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pokémon</title>
+    <link rel="stylesheet" href="pokemon.css">
+</head>
+<body>
+    <div class="pokemon-container">
+        <h1>My Pokémon</h1>
+        <div id="pokemon-grid" class="pokemon-grid">
+            <!-- Pokémon boxes will be dynamically loaded here -->
+        </div>
+        <button class="heal-button" onclick="healAll()">Heal</button>
+    </div>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000';
+        const trainerId = localStorage.getItem('trainer_id');  // Retrieve the trainer_id from localStorage
+        const pokemonGrid = document.getElementById('pokemon-grid');
+
+        // Fetch Pokémon from the API
+        async function fetchPokemon() {
+            try {
+                const response = await fetch(`${baseUrl}/trainers/${trainerId}/pokemon`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const pokemonData = await response.json();
+                populatePokemon(pokemonData);
+            } catch (error) {
+                console.error('Error fetching Pokémon data:', error);
+                pokemonGrid.innerHTML = '<p>Failed to load Pokémon data. Please try again later.</p>';
+            }
+        }
+
+        // Populate the Pokémon grid with fetched data
+        function populatePokemon(pokemonData) {
+            pokemonGrid.innerHTML = ''; // Clear previous content
+            pokemonData.forEach(pokemon => {
+                const pokemonBox = document.createElement('div');
+                pokemonBox.className = 'pokemon-box';
+                pokemonBox.innerHTML = `
+                    <h3>${pokemon.name}</h3>
+                    <p>Lv. ${pokemon.level}</p>
+                    <div class="health-bar">
+                        <div style="width: ${(pokemon.hp / pokemon.hp_stat) * 100}%;"></div>
+                    </div>
+                    <p>HP: ${pokemon.hp} / ${pokemon.hp_stat}</p>
+                    <p>Type: ${pokemon.type1}${pokemon.type2 ? ` / ${pokemon.type2}` : ''}</p>
+                `;
+                pokemonGrid.appendChild(pokemonBox);
+            });
+        }
+
+        // Heal all Pokémon (client-side only)
+        function healAll() {
+            const pokemonBoxes = document.querySelectorAll('.pokemon-box');
+            pokemonBoxes.forEach(box => {
+                const healthBar = box.querySelector('.health-bar div');
+                const hpText = box.querySelector('p:nth-of-type(2)');
+                healthBar.style.width = '100%';
+                hpText.textContent = `HP: Fully Healed`;
+            });
+            alert('All Pokémon are healed!');
+        }
+
+        // Initialize the page
+        fetchPokemon();
+    </script>
+</body>
+</html>
