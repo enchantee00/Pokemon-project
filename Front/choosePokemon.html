@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Pokémon</title>
-    <link rel="stylesheet" href="pokemon.css">
+    <title>Choose Your Pokémon</title>
+    <link rel="stylesheet" href="choosePokemon.css">
 </head>
 <body>
     <div class="pokemon-container">
-        <h1>My Pokémon</h1>
+        <h1>Choose Your Pokémon</h1>
         <div id="pokemon-grid" class="pokemon-grid">
-            <!-- Pokémon boxes will be dynamically loaded here -->
+            <!-- Pokémon will be dynamically rendered here -->
         </div>
-        <button class="heal-button" onclick="healAll()">Heal</button>
     </div>
 
     <script>
         const baseUrl = 'http://54.180.179.1:5000';
-        const trainerId = localStorage.getItem('trainer_id');  // Retrieve the trainer_id from localStorage
+        const trainerId = localStorage.getItem('trainer_id'); // Retrieve the trainer_id from localStorage
         const pokemonGrid = document.getElementById('pokemon-grid');
 
         // Fetch Pokémon from the API
@@ -41,7 +40,6 @@
         function populatePokemon(pokemonData) {
             pokemonGrid.innerHTML = ''; // Clear previous content
             pokemonData.forEach(pokemon => {
-                // Calculate Full Max HP using the formula
                 const MAXhp = Math.floor(((2 * pokemon.hp_stat + 100) * pokemon.level) / 100) + 10;
                 const pokemonBox = document.createElement('div');
                 pokemonBox.className = 'pokemon-box';
@@ -54,23 +52,21 @@
                     <p>HP: ${pokemon.hp} / ${MAXhp}</p>
                     <p>Type: ${pokemon.type1}${pokemon.type2 ? ` / ${pokemon.type2}` : ''}</p>
                 `;
+                // Add a click event to start the battle
+                pokemonBox.addEventListener('click', () => {
+                    startBattle(pokemon.id);
+                });
                 pokemonGrid.appendChild(pokemonBox);
             });
         }
 
-        // Heal all Pokémon (client-side only)
-        function healAll() {
-            const pokemonBoxes = document.querySelectorAll('.pokemon-box');
-            pokemonBoxes.forEach(box => {
-                const healthBar = box.querySelector('.health-bar div');
-                const hpText = box.querySelector('p:nth-of-type(2)');
-                healthBar.style.width = '100%';
-                hpText.textContent = `HP: Fully Healed`;
-            });
-            alert('All Pokémon are healed!');
+        // Start the battle with the selected Pokémon
+        function startBattle(pokemonId) {
+            alert(`Starting battle with Pokémon ID: ${pokemonId}`);
+            location.href = `battleScene.html?pokemonId=${pokemonId}`;
         }
 
-        // Initialize the page
+        // Fetch and render Pokémon on page load
         fetchPokemon();
     </script>
 </body>

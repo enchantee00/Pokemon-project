@@ -10,21 +10,18 @@
     <div class="battle-container">
         <h1>Choose Your Battle</h1>
         <div class="button-group">
-            <button onclick="location.href='battleScene.html'">Battle Wild Pokémon</button>
-            <button onclick="location.href='battleScene.html'">Challenge Gym Leaders</button>
+            <button onclick="startBattle('wild')">Battle Wild Pokémon</button>
+            <button onclick="startBattle('gym')">Challenge Gym Leaders</button>
         </div>
     </div>
 
     <script>
-        function battleWildPokemon() {
-            alert('Navigating to Wild Pokémon Battle!');
-        
+        function startBattle(battleType) {
+            // Store the battle type in localStorage for later use
+            localStorage.setItem('battle_type', battleType);
 
-        }
-
-        function challengeGymLeaders() {
-            alert('Navigating to Gym Leader Challenges!');
-            // Replace this alert with navigation logic to the Gym Leader challenge page
+            // Redirect to the Pokémon list page
+            location.href = 'choosePokemon.html';
         }
     </script>
 </body>
