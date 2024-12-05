@@ -51,19 +51,31 @@
                     </div>
                     <p>HP: ${pokemon.hp} / ${MAXhp}</p>
                     <p>Type: ${pokemon.type1}${pokemon.type2 ? ` / ${pokemon.type2}` : ''}</p>
+                    <img src="${pokemon.front_img_url}" alt="${pokemon.name}" class="pokemon-sprite">
                 `;
-                // Add a click event to start the battle
+                // Add a click event to select the Pokémon
                 pokemonBox.addEventListener('click', () => {
-                    startBattle(pokemon.id);
+                    selectPokemon(pokemon, MAXhp);
                 });
                 pokemonGrid.appendChild(pokemonBox);
             });
         }
 
-        // Start the battle with the selected Pokémon
-        function startBattle(pokemonId) {
-            alert(`Starting battle with Pokémon ID: ${pokemonId}`);
-            location.href = `battleScene.html?pokemonId=${pokemonId}`;
+        // Store the selected Pokémon's data and navigate to the battle scene
+        function selectPokemon(pokemon, MAXhp) {
+            const selectedPokemon = {
+                id: pokemon.id, // Store the Pokémon's ID for querying moves
+                name: pokemon.name,
+                level: pokemon.level,
+                hp: pokemon.hp,
+                maxHp: MAXhp,
+                type1: pokemon.type1,
+                type2: pokemon.type2 || null,
+                frontImg: pokemon.front_img_url,
+                backImg: pokemon.back_img_url
+            };
+            localStorage.setItem('selectedPokemon', JSON.stringify(selectedPokemon));
+            location.href = 'battleScene.html'; // Redirect to the battle scene
         }
 
         // Fetch and render Pokémon on page load
@@ -71,3 +83,4 @@
     </script>
 </body>
 </html>
+
