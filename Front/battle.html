@@ -16,12 +16,41 @@
     </div>
 
     <script>
-        function startBattle(battleType) {
-            // Store the battle type in localStorage for later use
-            localStorage.setItem('battle_type', battleType);
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with your API base URL
+        
+        //const MAXhp = (hp_stat, level) => Math.floor(((2 * hp_stat + 100) * level) / 100) + 10;
 
-            // Redirect to the Pokémon list page
-            location.href = 'choosePokemon.html';
+        async function startBattle(battleType) {
+            if (battleType === 'wild') {
+                try {
+                    // Fetch a random wild Pokémon based on the trainer's badge level
+                    const badgeId = 0; // Replace with the dynamic badge ID if available
+                    const response = await fetch(`${baseUrl}/wild-pokemon/trainer-badge/${badgeId}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const opponentPokemon = await response.json(); // Get the wild Pokémon data
+                    console.log('Wild Pokémon Data:', opponentPokemon);
+
+                    // Calculate MAXhp for the wild Pokémon
+                    opponentPokemon.maxHp = opponentPokemon.hp
+
+                    // Save wild Pokémon data to localStorage
+                    localStorage.setItem('opponentPokemon', JSON.stringify(opponentPokemon));
+
+                    // Redirect to the Pokémon list page
+                    location.href = 'choosePokemon.html';
+                } catch (error) {
+                    console.error('Error fetching wild Pokémon:', error);
+                    alert('Failed to fetch wild Pokémon. Please try again.');
+                }
+            } else if (battleType === 'gym') {
+                // For gym battles, just store the battle type and redirect
+                localStorage.setItem('battle_type', battleType);
+                location.href = 'choosePokemon.html';
+            }
         }
     </script>
 </body>

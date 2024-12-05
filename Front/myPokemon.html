@@ -37,41 +37,59 @@
             }
         }
 
-        // Populate the Pokémon grid with fetched data
         function populatePokemon(pokemonData) {
-            pokemonGrid.innerHTML = ''; // Clear previous content
-            pokemonData.forEach(pokemon => {
-                // Calculate Full Max HP using the formula
-                const MAXhp = Math.floor(((2 * pokemon.hp_stat + 100) * pokemon.level) / 100) + 10;
-                const pokemonBox = document.createElement('div');
-                pokemonBox.className = 'pokemon-box';
-                pokemonBox.innerHTML = `
-                    <h3>${pokemon.name}</h3>
-                    <p>Lv. ${pokemon.level}</p>
-                    <div class="health-bar">
-                        <div style="width: ${(pokemon.hp / MAXhp) * 100}%;"></div>
-                    </div>
-                    <p>HP: ${pokemon.hp} / ${MAXhp}</p>
-                    <p>Type: ${pokemon.type1}${pokemon.type2 ? ` / ${pokemon.type2}` : ''}</p>
-                `;
-                pokemonGrid.appendChild(pokemonBox);
-            });
-        }
+        pokemonGrid.innerHTML = ''; // Clear previous content
+        pokemonData.forEach(pokemon => {
+            // Calculate Full Max HP using the formula
+            const MAXhp = Math.floor(((2 * pokemon.hp_stat + 100) * pokemon.level) / 100) + 10;
+            const pokemonBox = document.createElement('div');
+            pokemonBox.className = 'pokemon-box';
+            pokemonBox.innerHTML = `
+                <h3>${pokemon.name}</h3>
+                <p>Lv. ${pokemon.level}</p>
+                <img src="${pokemon.front_img_url}" alt="${pokemon.name}" class="pokemon-sprite">
+                <div class="health-bar">
+                    <div style="width: ${(pokemon.hp / MAXhp) * 100}%;"></div>
+                </div>
+                <p>HP: ${pokemon.hp} / ${MAXhp}</p>
+                <p>Type: ${pokemon.type1}${pokemon.type2 ? ` / ${pokemon.type2}` : ''}</p>
+            `;
+            pokemonGrid.appendChild(pokemonBox);
+        });
+    }
 
-        // Heal all Pokémon (client-side only)
-        function healAll() {
-            const pokemonBoxes = document.querySelectorAll('.pokemon-box');
-            pokemonBoxes.forEach(box => {
-                const healthBar = box.querySelector('.health-bar div');
-                const hpText = box.querySelector('p:nth-of-type(2)');
-                healthBar.style.width = '100%';
-                hpText.textContent = `HP: Fully Healed`;
-            });
-            alert('All Pokémon are healed!');
-        }
+        async function healAll() {
+        try {
+            if (!trainerId) {
+                alert('Trainer ID is missing. Please log in again.');
+                return;
+            }
 
-        // Initialize the page
-        fetchPokemon();
+            const response = await fetch(`${baseUrl}/trainers/${trainerId}/heal`, {
+                method: 'GET'
+            });
+
+            console.log('Response Status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text(); // Log raw response for debugging
+                console.error('Error Response Text:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json(); // Parse response as JSON
+            alert(result.message);
+
+            // Refresh Pokémon data
+            await fetchPokemon();
+        } catch (error) {
+            console.error('Error healing Pokémon:', error);
+            alert('Failed to heal Pokémon. Please try again later.');
+        }
+    }
+
+    // Initialize the page
+    fetchPokemon();
     </script>
 </body>
 </html>

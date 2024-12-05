@@ -72,8 +72,10 @@
                 type1: pokemon.type1,
                 type2: pokemon.type2 || null,
                 frontImg: pokemon.front_img_url,
-                backImg: pokemon.back_img_url
+                backImg: pokemon.back_img_url,
+                pokedex_id: pokemon.pokedex_id
             };
+            //alert(`${selectedPokemon.pokedex_id}`);
             localStorage.setItem('selectedPokemon', JSON.stringify(selectedPokemon));
             location.href = 'battleScene.html'; // Redirect to the battle scene
         }
