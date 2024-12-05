@@ -17,6 +17,19 @@ bcrypt = Bcrypt(app)
 CORS(app)  # 모든 도메인에서의 요청 허용
 
 
+# Badges 값에 따른 레벨 범위
+BADGE_LEVEL_RANGES = {
+    0: (1, 12),
+    1: (13, 18),
+    2: (19, 24),
+    3: (19, 24),
+    4: (25, 37),
+    5: (25, 37),
+    6: (25, 37),
+    7: (38, 40),
+    8: (41, 53)
+}
+
 
 @app.errorhandler(404)
 def not_found_error(e):
@@ -32,6 +45,45 @@ def internal_server_error(e):
 @app.route('/')
 def home():
     return "Hello! World!"
+
+
+@app.route('/trainers', methods=['GET'])
+def get_trainers():
+    """모든 트레이너 조회"""
+    trainers = Trainer.query.all()
+    return jsonify([{
+        'id': trainer.id,
+        'name': trainer.name,
+        'badges': trainer.badges,
+        'role': trainer.role,
+        'created_at': trainer.created_at
+    } for trainer in trainers])
+
+
+@app.route('/pokemons', methods=['GET'])
+def get_pokemons():
+    """모든 포켓몬 조회"""
+    pokemons = Pokemon.query.all()
+    
+    id = db.Column(db.Integer, primary_key=True)
+    pokedex_id = db.Column(db.Integer, db.ForeignKey('pokedex.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    level = db.Column(db.Integer, default=1)
+    experience = db.Column(db.Integer, default=0)
+    hp = db.Column(db.Integer, nullable=False)
+    trainer_id = db.Column(db.Integer, db.ForeignKey('trainers.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    return jsonify([{
+        'id': pokemon.id,
+        'pokedex_id': pokemon.pokedex_id,
+        'name': pokemon.name,
+        'level': pokemon.level,
+        'experience': pokemon.experience,
+        'hp': pokemon.hp,
+        'trainer_id': pokemon.trainer_id,
+        'created_at': pokemon.created_at
+    } for pokemon in pokemons])
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -142,18 +194,7 @@ def login():
 
 
 
-# --- Trainers API ---
-@app.route('/trainers', methods=['GET'])
-def get_trainers():
-    """모든 트레이너 조회"""
-    trainers = Trainer.query.all()
-    return jsonify([{
-        'id': trainer.id,
-        'name': trainer.name,
-        'badges': trainer.badges,
-        'role': trainer.role,
-        'created_at': trainer.created_at
-    } for trainer in trainers])
+
 
 # @app.route('/trainers', methods=['POST'])
 # def add_trainer():
@@ -318,59 +359,7 @@ def get_pokemon_by_id(id):
 #     return jsonify({'message': 'Pokemon deleted successfully'})
 
 
-# Pokedex에서 랜덤으로 뽑기, Level 뱃지따라서 다르게
-@app.route('/wild-pokemon', methods=['GET'])
-def get_wild_pokemon():
-    """랜덤 야생 포켓몬 등장 + PokeDex 정보 포함"""
-    try:
-        # trainer_id가 0인 야생 포켓몬 조회
-        wild_pokemon = db.session.query(
-            Pokemon.id.label("pokemon_id"),
-            Pokemon.name,
-            Pokemon.level,
-            Pokemon.experience,
-            Pokemon.hp,
-            Pokemon.trainer_id,
-            Pokemon.created_at,
-            PokeDex.id.label("pokedex_id"),
-            PokeDex.name.label("pokedex_name"),
-            PokeDex.type1,
-            PokeDex.type2,
-            PokeDex.hp_stat,
-            PokeDex.att,
-            PokeDex.def_stat,
-            PokeDex.spd
-        ).join(PokeDex, Pokemon.pokedex_id == PokeDex.id).filter(Pokemon.trainer_id == 0).all()
 
-        if not wild_pokemon:
-            return jsonify({"error": "No wild Pokemon available"}), 404
-
-        # 랜덤으로 한 포켓몬 선택
-        selected_pokemon = random.choice(wild_pokemon)
-
-        return jsonify({
-            "pokemon": {
-                "id": selected_pokemon.pokemon_id,
-                "name": selected_pokemon.name,
-                "level": selected_pokemon.level,
-                "experience": selected_pokemon.experience,
-                "hp": selected_pokemon.hp,
-                "trainer_id": selected_pokemon.trainer_id,
-                "created_at": selected_pokemon.created_at
-            },
-            "pokedex": {
-                "id": selected_pokemon.pokedex_id,
-                "name": selected_pokemon.pokedex_name,
-                "type1": selected_pokemon.type1,
-                "type2": selected_pokemon.type2,
-                "hp_stat": selected_pokemon.hp_stat,
-                "att": selected_pokemon.att,
-                "def_stat": selected_pokemon.def_stat,
-                "spd": selected_pokemon.spd
-            }
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/trainers/<int:trainer_id>/pokemon/<int:pokemon_id>/moves', methods=['GET'])
@@ -400,6 +389,106 @@ def get_pokemon_moves(trainer_id, pokemon_id):
             "accuracy": m.accuracy
         } for m in moves])
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    
+# 야생 포켓몬 Level 트레이너 뱃지 개수 따라서 다르게
+@app.route('/wild-pokemon/trainer-badge/<int:badges>', methods=['GET'])
+def get_wild_pokemon(badges):
+    """랜덤 야생 포켓몬 등장 + PokeDex 정보 포함"""
+    try:
+        # trainer_id가 0인 야생 포켓몬 조회
+        wild_pokemons = db.session.query(
+            Pokemon.id.label("pokemon_id"),
+            Pokemon.name,
+            Pokemon.level,
+            Pokemon.experience,
+            Pokemon.hp,
+            Pokemon.trainer_id,
+            Pokemon.created_at,
+            PokeDex.id.label("pokedex_id"),
+            PokeDex.name.label("pokedex_name"),
+            PokeDex.type1,
+            PokeDex.type2,
+            PokeDex.hp_stat,
+            PokeDex.att,
+            PokeDex.def_stat,
+            PokeDex.spd,
+            PokeDex.front_img,
+            PokeDex.back_img,
+        ).join(PokeDex, Pokemon.pokedex_id == PokeDex.id).filter(Pokemon.trainer_id == 0).all()
+
+        if not wild_pokemons:
+            return jsonify({"error": "No wild Pokemon available"}), 404
+
+        # 랜덤으로 한 포켓몬 선택
+        selected_pokemon = random.choice(wild_pokemons)
+        
+        
+        if badges not in BADGE_LEVEL_RANGES:
+            raise ValueError(f"Invalid badges value: {badges}")
+        level_min, level_max = BADGE_LEVEL_RANGES[badges]
+        
+        random_level = random.randint(level_min, level_max)
+        max_hp = ((2 * selected_pokemon.hp_stat + 100) * random_level) / 100 + 10  # Level 5
+        
+        return jsonify({
+            'id': selected_pokemon.pokemon_id,
+            'pokedex_id': selected_pokemon.pokedex_id,
+            'name': selected_pokemon.name, 
+            'level': random_level,
+            'hp': max_hp,
+            'front_img_url':selected_pokemon.front_img,
+            'back_img_url':selected_pokemon.back_img,
+            'created_at': selected_pokemon.created_at,
+        })
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500      
+    
+      
+    
+# 레벨에 따라 hp 달라질 것 같음 -> pokemon 테이블에 hp_stat 둬야 할 것 같음
+@app.route('/catch', methods=['POST'])
+def catch_pokemon():
+    """포획: hp 수준에 따라 포획 확률 계산"""
+    try:
+        data = request.json
+        trainer_id = data['trainer_id']
+
+        wild_pokemon_id = data['pokemon_id']
+        wild_pokemon = Pokemon.query.get(wild_pokemon_id)
+        if not wild_pokemon or wild_pokemon.trainer_id != 0:
+            return jsonify({"error": "Wild Pokemon not found"}), 404
+        
+
+        wild_pokedex = PokeDex.query.get(wild_pokemon.pokedex_id)
+        level = data['level']
+        remaining_hp = data['remaining_hp']
+        max_hp = ((2 * wild_pokedex.hp_stat + 100) * level) / 100 + 10
+
+        # 포획 확률 계산
+        capture_rate = max(1, (1 - (remaining_hp / max_hp)) * 100)
+        success = random.randint(1, 100) <= capture_rate
+
+        if success:
+            # 포켓몬 소유권 업데이트            
+            new_pokemon = Pokemon(
+                pokedex_id=wild_pokemon.pokedex_id,
+                name=wild_pokemon.name,
+                level=level,
+                experience=0,
+                hp=remaining_hp,
+                trainer_id=trainer_id 
+            )
+            db.session.add(new_pokemon)
+            db.session.commit()
+            return jsonify({"message": "Pokemon caught successfully!"})
+        else:
+            return jsonify({"message": "Pokemon escaped!"})
+
+    except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
@@ -483,8 +572,12 @@ def use_skill():
 
             # HP 업데이트
             attacker['hp'] = max(0, attacker['hp'] - damage)
-            # DB에서 해당 포켓몬의 hp 업데이트
-            db.session.query(PokemonMove).filter_by(pokemon_id=defender['id'], move_id=selected_move.move_id).update({"remaining_uses": selected_move.remaining_uses-1})
+            
+            if id != -1: # 야생 X
+                # DB에서 상대 포켓몬이 사용한 스킬 remaining_use 업데이트
+                db.session.query(PokemonMove).filter_by(pokemon_id=defender['id'], move_id=selected_move.move_id).update({"remaining_uses": selected_move.remaining_uses-1})
+            else: # 야생일 때
+                pass
             # 변경사항 커밋
             db.session.commit()
                         
@@ -607,32 +700,7 @@ def heal_pokemon(trainer_id):
         return jsonify({"error": str(e)}), 500
         
 
-# 레벨에 따라 hp 달라질 것 같음 -> pokemon 테이블에 hp_stat 둬야 할 것 같음
-@app.route('/catch/<int:wild_pokemon_id>', methods=['POST'])
-def catch_pokemon(wild_pokemon_id):
-    """포획: hp 수준에 따라 포획 확률 계산"""
-    try:
-        wild_pokemon = Pokemon.query.get(wild_pokemon_id)
-        if not wild_pokemon or wild_pokemon.trainer_id != 0:
-            return jsonify({"error": "Wild Pokemon not found"}), 404
 
-        # 포획 확률 계산
-        capture_rate = max(1, (1 - (wild_pokemon.hp / 100)) * 100)
-        success = random.randint(1, 100) <= capture_rate
-
-        if success:
-            # 포켓몬 소유권 업데이트
-            data = request.json
-            trainer_id = data['trainer_id']
-            wild_pokemon.trainer_id = trainer_id
-            db.session.commit()
-            return jsonify({"message": "Pokemon caught successfully!"})
-        else:
-            return jsonify({"message": "Pokemon escaped!"})
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
