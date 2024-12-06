@@ -314,6 +314,28 @@ def get_pokemon_by_trainer(trainer_id):
 #     db.session.commit()
 #     return jsonify({'message': 'Pokemon added successfully', 'id': pokemon.id}), 201
 
+@app.route('/pokemon/<int:pokemon_id>', methods=['DELETE'])
+def delete_pokemon(pokemon_id):
+    try:
+        # 해당 Pokemon ID로 포켓몬 검색
+        pokemon = Pokemon.query.filter_by(id=pokemon_id).first()
+
+        # 포켓몬이 없을 경우
+        if not pokemon:
+            return jsonify({"error": "Pokemon not found"}), 404
+
+        # 포켓몬 삭제
+        db.session.delete(pokemon)
+        db.session.commit()
+
+        return jsonify({"message": f"Pokemon with ID {pokemon_id} has been deleted successfully."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500
+
+
 @app.route('/pokemon/<int:id>', methods=['GET'])
 def get_pokemon_by_id(id):
     """특정 포켓몬 조회"""
@@ -393,8 +415,8 @@ def get_pokemon_moves(trainer_id, pokemon_id):
     
     
 # 야생 포켓몬 Level 트레이너 뱃지 개수 따라서 다르게
-@app.route('/wild-pokemon/trainer-badge/<int:badges>', methods=['GET'])
-def get_wild_pokemon(badges):
+@app.route('/wild-pokemon/trainer/<int:trainer_id>', methods=['GET'])
+def get_wild_pokemon(trainer_id):
     """랜덤 야생 포켓몬 등장 + PokeDex 정보 포함"""
     try:
         # trainer_id가 0인 야생 포켓몬 조회
@@ -424,6 +446,8 @@ def get_wild_pokemon(badges):
         # 랜덤으로 한 포켓몬 선택
         selected_pokemon = random.choice(wild_pokemons)
         
+        trainer = Trainer.query.get(trainer_id)
+        badges = trainer.badges
         
         if badges not in BADGE_LEVEL_RANGES:
             raise ValueError(f"Invalid badges value: {badges}")
@@ -455,24 +479,33 @@ def catch_pokemon():
     try:
         data = request.json
         trainer_id = data['trainer_id']
+        attacker = data['attacker']
+        defender = data['defender']
 
-        wild_pokemon_id = data['pokemon_id']
+        wild_pokemon_id = defender['pokemon_id']
         wild_pokemon = Pokemon.query.get(wild_pokemon_id)
         if not wild_pokemon or wild_pokemon.trainer_id != 0:
             return jsonify({"error": "Wild Pokemon not found"}), 404
         
 
         wild_pokedex = PokeDex.query.get(wild_pokemon.pokedex_id)
-        level = data['level']
-        remaining_hp = data['remaining_hp']
+        level = defender['level']
+        remaining_hp = defender['hp']
         max_hp = ((2 * wild_pokedex.hp_stat + 100) * level) / 100 + 10
 
         # 포획 확률 계산
         capture_rate = max(1, (1 - (remaining_hp / max_hp)) * 100)
         success = random.randint(1, 100) <= capture_rate
 
+        opponent_move = ""
         if success:
-            # 포켓몬 소유권 업데이트            
+            # 포켓몬 소유권 업데이트
+            
+            owned_pokemon_count = Pokemon.query.filter_by(trainer_id=trainer_id).count()
+
+            if owned_pokemon_count >= 6:
+                return jsonify({"caught": -1, "message": "You already have 6 Pokemon. You can't catch more!"})
+    
             new_pokemon = Pokemon(
                 pokedex_id=wild_pokemon.pokedex_id,
                 name=wild_pokemon.name,
@@ -483,9 +516,52 @@ def catch_pokemon():
             )
             db.session.add(new_pokemon)
             db.session.commit()
-            return jsonify({"message": "Pokemon caught successfully!"})
+            return jsonify({"caught":1, "message": "Pokemon caught successfully!"})
+        
         else:
-            return jsonify({"message": "Pokemon escaped!"})
+            moves = db.session.query(
+                PokemonMove.remaining_uses,
+                Move.id.label("move_id"),
+                Move.name,
+                Move.type,
+                Move.power,
+                Move.pp,
+                Move.accuracy
+            ).join(Move, PokemonMove.move_id == Move.id).filter(PokemonMove.pokemon_id == wild_pokemon_id, PokemonMove.remaining_uses > 0).all()
+
+            if not moves:
+                return jsonify({"error": "No available moves for this Pokemon"}), 400
+            selected_move = random.choice(moves)
+            opponent_move = selected_move.name
+            
+            # 데미지 계산
+            effectiveness_type1 = db.session.query(TypeEffectiveness.effectiveness).filter_by(
+                attack=selected_move.type, defend=attacker_pokedex.type1).scalar() or 1.0
+            effectiveness_type2 = db.session.query(TypeEffectiveness.effectiveness).filter_by(
+                attack=selected_move.type, defend=attacker_pokedex.type2).scalar() or 1.0
+            
+            attacker_pokedex = PokeDex.query.get(attacker['pokedex_id']) 
+            defender_pokedex = PokeDex.query.get(defender['pokedex_id']) 
+
+            damage = calculate_damage(defender_pokedex, attacker_pokedex, level, selected_move, effectiveness_type1, effectiveness_type2)
+            print("opponent attack :", damage)
+            
+            # HP 업데이트
+            attacker['hp'] = max(0, attacker['hp'] - damage)
+            
+            db.session.query(PokemonMove).filter_by(pokemon_id=defender['id'], move_id=selected_move.move_id).update({"remaining_uses": selected_move.remaining_uses-1})
+            
+            return jsonify({
+                # 한 턴이 끝날때마다 남은
+                "caught": 0,
+                "attacker": {
+                    "id": attacker['id'],
+                    "remaining_hp": attacker['hp']
+                },
+                "defender_move": {
+                    "move_name": opponent_move
+                }
+            })
 
     except Exception as e:
         db.session.rollback()
@@ -508,6 +584,81 @@ def calculate_damage(attacker, defender, level, move, effectiveness_type1, effec
     # 데미지 공식
     damage = (((2 * Level * Critical / 5 + 2) * Power * (A / D)) / 50 + 2) * STAB * type1 * type2 * random_factor
     return int(damage)
+
+
+@app.route('/battle/trainer/<int:trainer_id>', methods=['GET'])
+def battle_start(trainer_id):
+    """뱃지 개수에 따라 관장 차례대로 나옴"""
+    try:
+        trainer = Trainer.query.filter_by(id=trainer_id).first()
+        my_badges = trainer.badges
+        
+        if my_badges <= 7:
+            opponent = Trainer.query.filter_by(role="Gym Leader", badges=my_badges+1).first()
+        else: # elite_four
+            opponents = (
+                Trainer.query
+                .filter_by(role="Elite Four")
+                .order_by(Trainer.id)  # trainer_id 순서로 정렬
+                .all()
+            )
+            # 마지막까지 해치우면 마지막 엘리트 4만 마주침
+            if my_badges - 8 >= 4:
+                my_badges = 11
+            opponent = opponents[my_badges-8]  # 리스트의 첫 번째 트레이너 선택
+            
+        opponent_pokemons = db.session.query(
+            Pokemon.id.label("pokemon_id"),
+            Pokemon.name,
+            Pokemon.level,
+            Pokemon.experience,
+            Pokemon.hp,
+            Pokemon.trainer_id,
+            Pokemon.created_at,
+            PokeDex.id.label("pokedex_id"),
+            PokeDex.name.label("pokedex_name"),
+            PokeDex.type1,
+            PokeDex.type2,
+            PokeDex.hp_stat,
+            PokeDex.att,
+            PokeDex.def_stat,
+            PokeDex.spd,
+            PokeDex.front_img,
+            PokeDex.back_img,
+        ).join(PokeDex, Pokemon.pokedex_id == PokeDex.id).filter(Pokemon.trainer_id == opponent.id).all()
+        
+        # 포켓몬 데이터 변환
+        result = []
+        for pokemon in opponent_pokemons:
+            result.append({
+                'id': pokemon.pokemon_id,
+                'pokedex_id': pokemon.pokedex_id,
+                'name': pokemon.name,
+                'level': pokemon.level,
+                'hp': pokemon.hp,
+                'front_img_url': pokemon.front_img,
+                'back_img_url': pokemon.back_img,
+                'created_at': pokemon.created_at
+            })
+        # 응답 데이터 생성
+        opponent = {
+            "id": opponent.id,
+            "name": opponent.name,
+            "badges": opponent.badges,
+            "total_pokemon": len(result),
+        }
+        response = {
+            "opponent": opponent,
+            "pokemons": result
+        }
+
+        # 결과 반환
+        return jsonify(response), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500      
 
 
 @app.route('/battle/skill-use', methods=['POST'])
@@ -537,13 +688,14 @@ def use_skill():
             attack=move.type, defend=defender_pokedex.type2).scalar() or 1.0
 
         damage = calculate_damage(attacker_pokedex, defender_pokedex, attacker['level'], move, effectiveness_type1, effectiveness_type2)
+        print("attack: ", damage)
 
         # HP 업데이트
         defender['hp'] = max(0, defender['hp'] - damage)
         pokemon_move['remaining_uses'] -= 1
         
         
-        exp = None
+        opponent_move = ""
         # 상대방의 hp가 0이 아니면 나도 해당 포켓몬의 랜덤 스킬로 공격받는다
         if defender['hp'] != 0:
             
@@ -560,6 +712,7 @@ def use_skill():
             if not moves:
                 return jsonify({"error": "No available moves for this Pokemon"}), 400
             selected_move = random.choice(moves)
+            opponent_move = selected_move.name
             
             
             # 데미지 계산
@@ -569,20 +722,15 @@ def use_skill():
                 attack=selected_move.type, defend=attacker_pokedex.type2).scalar() or 1.0
 
             damage = calculate_damage(defender_pokedex, attacker_pokedex, defender['level'], selected_move, effectiveness_type1, effectiveness_type2)
-
+            print("opponent attack :", damage)
+            
             # HP 업데이트
             attacker['hp'] = max(0, attacker['hp'] - damage)
             
-            if id != -1: # 야생 X
-                # DB에서 상대 포켓몬이 사용한 스킬 remaining_use 업데이트
-                db.session.query(PokemonMove).filter_by(pokemon_id=defender['id'], move_id=selected_move.move_id).update({"remaining_uses": selected_move.remaining_uses-1})
-            else: # 야생일 때
-                pass
+            db.session.query(PokemonMove).filter_by(pokemon_id=defender['id'], move_id=selected_move.move_id).update({"remaining_uses": selected_move.remaining_uses-1})
             # 변경사항 커밋
             db.session.commit()
-                        
-        else: # 상대방 포켓몬 죽이면 경험치 준다
-            exp = 10
+                    
         
         return jsonify({
             # 한 턴이 끝날때마다 남은
@@ -600,7 +748,7 @@ def use_skill():
                 "remaining_uses": pokemon_move['remaining_uses']
             },
             "defender_move": {
-                "move_name": selected_move.name
+                "move_name": opponent_move
             }
         })
     except Exception as e:
@@ -611,18 +759,31 @@ def use_skill():
 
 @app.route('/battle/update', methods=['POST'])
 def update_battle_results():
-    """배틀 종료 후 포켓몬 HP와 스킬 remaining_uses 업데이트"""
+    """배틀 종료 후 포켓몬 HP, exp, level, 스킬 remaining_uses 업데이트"""
     try:
         # 클라이언트로부터 받은 데이터
         data = request.json
 
         # 1. 포켓몬 업데이트
-        pokemon_updates = data.get('pokemon')  # 포켓몬 HP 업데이트 정보
+        pokemon_updates = data.get('pokemons')  # 포켓몬 HP 업데이트 정보
         if pokemon_updates:
             for pokemon in pokemon_updates:
+                pokemon_entry = Pokemon.query.get(pokemon['id'])
+                pokedex_entry = PokeDex.query.get(pokemon_entry.pokedex_id)
+                
+                new_exp = pokemon_entry.experience + 20
+                new_level = pokemon_entry.level
+                level_up_exp = pokemon_entry.level * (pokedex_entry.att + pokedex_entry.def_stat + pokedex_entry.spd + pokedex_entry.hp_stat)
+                if level_up_exp < pokemon_entry.experience + 20: 
+                    new_level += 1
+                    new_exp = (pokemon_entry.experience + 20) - level_up_exp
+                
                 db.session.query(Pokemon).filter_by(id=pokemon['id']).update({
-                    "hp": pokemon['remaining_hp']
+                    "hp": pokemon['remaining_hp'],
+                    "experience": new_exp,
+                    "level": new_level
                 })
+                
 
         # 2. 스킬 remaining_uses 업데이트
         skill_updates = data.get('skills')  # 스킬 remaining_uses 업데이트 정보
@@ -634,14 +795,50 @@ def update_battle_results():
                 ).update({
                     "remaining_uses": skill['remaining_uses']
                 })
+        
+        # 상대 트레이너 포켓몬들 기술 횟수 풀로 채우기
+        trainer_id = data.get('trainer_id')
+        opponent_id = data.get('opponent_id')
+        won = data.get('won')
+        
+        pokemons = Pokemon.query.filter_by(trainer_id = opponent_id).all()
+        pokemon_moves = db.session.query(
+            PokemonMove.pokemon_id,
+            PokemonMove.move_id,
+            PokemonMove.remaining_uses,
+            Move.pp.label("max_pp")
+        ).join(
+            Move, PokemonMove.move_id == Move.id
+        ).filter(
+            PokemonMove.pokemon_id.in_([pokemon.id for pokemon in pokemons])
+        ).all()
+        
+        moves_by_pokemon = defaultdict(list)
+        for move in pokemon_moves:
+            moves_by_pokemon[move.pokemon_id].append(move)
 
+        for pokemon in pokemons:
+            # 스킬 remaining_uses 갱신
+            for move in moves_by_pokemon[pokemon.id]:
+                db.session.query(PokemonMove).filter_by(
+                    pokemon_id=move.pokemon_id,
+                    move_id=move.move_id
+                ).update({"remaining_uses": move.max_pp})
+        
+        if won:
+            badges = Trainer.query.get(trainer_id).badges
+            db.session.query(Trainer).filter_by(id=trainer_id).update({
+                "badges": badges + 1,
+            })
+        
+    
         # 변경 사항 커밋
         db.session.commit()
         return jsonify({"message": "Battle results updated successfully"}), 200
 
     except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500     
 
 
 @app.route('/trainers/<int:trainer_id>/heal', methods=['GET'])
@@ -699,9 +896,6 @@ def heal_pokemon(trainer_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
         
-
-
-
-
+        
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
