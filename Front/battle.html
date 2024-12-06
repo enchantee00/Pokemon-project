@@ -12,6 +12,7 @@
         <div class="button-group">
             <button onclick="startBattle('wild')">Battle Wild Pokémon</button>
             <button onclick="startBattle('gym')">Challenge Gym Leaders</button>
+            <button onclick="location.href='main.html'">Main Screen</button>
         </div>
     </div>
 
@@ -24,8 +25,9 @@
             if (battleType === 'wild') {
                 try {
                     // Fetch a random wild Pokémon based on the trainer's badge level
-                    const badgeId = 0; // Replace with the dynamic badge ID if available
-                    const response = await fetch(`${baseUrl}/wild-pokemon/trainer-badge/${badgeId}`);
+                    //const badgeId = 0; // Replace with the dynamic badge ID if available
+                    const trainerId = localStorage.getItem('trainer_id'); // Retrieve the trainer_id from localStorage
+                    const response = await fetch(`${baseUrl}/wild-pokemon/trainer/${trainerId}`);
 
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -41,7 +43,7 @@
                     localStorage.setItem('opponentPokemon', JSON.stringify(opponentPokemon));
 
                     // Redirect to the Pokémon list page
-                    location.href = 'choosePokemon.html';
+                    location.href = 'wildChoosePokemon.html';
                 } catch (error) {
                     console.error('Error fetching wild Pokémon:', error);
                     alert('Failed to fetch wild Pokémon. Please try again.');
@@ -49,7 +51,7 @@
             } else if (battleType === 'gym') {
                 // For gym battles, just store the battle type and redirect
                 localStorage.setItem('battle_type', battleType);
-                location.href = 'choosePokemon.html';
+                location.href = 'gymChoosePokemon.html';
             }
         }
     </script>
