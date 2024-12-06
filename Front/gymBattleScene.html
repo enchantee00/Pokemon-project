@@ -50,6 +50,8 @@
         const selectedPokemon = JSON.parse(localStorage.getItem('selectedPokemon')); // Get selected Pokémon data
         const opponentPokemon = JSON.parse(localStorage.getItem('opponentPokemon')); // Get opponent pokemon data
         const movesMenu = document.getElementById('moves-menu');
+        const usedSkills = []; // Tracks all moves used by the Pokémon
+
 
         // Update player Pokémon details
         document.getElementById('player-name').textContent = selectedPokemon.name;
@@ -144,26 +146,25 @@
                 // Notify the user of the move being used
                 alert(`${moveName} used!`);
                 movesMenu.style.display = 'none'; // Hide the moves menu after selection
-                //alert(`${pokemonMove.remaining_uses}`);
+
                 // Construct the API request body
                 const body = {
-                    "attacker":{
+                    "attacker": {
                         "id": selectedPokemon.id,
                         "pokedex_id": selectedPokemon.pokedex_id,
                         "level": selectedPokemon.level,
                         "hp": selectedPokemon.hp
                     },
-                    "pokemon_move":{
+                    "pokemon_move": {
                         "move_id": pokemonMove.move_id,
                         "pokemon_id": pokemonMove.pokemon_id,
                         "remaining_uses": pokemonMove.remaining_uses
                     },
-                    "defender":{
+                    "defender": {
                         "id": opponentPokemon.id,
                         "pokedex_id": opponentPokemon.pokedex_id,
                         "level": opponentPokemon.level,
                         "hp": opponentPokemon.hp,
-                        //"name": opponentPokemon.name
                     }
                 };
 
@@ -183,17 +184,24 @@
 
                 const result = await response.json();
 
-                // Update the battle state based on the API response
-                console.log('Skill use result:', result);
-
-                // Update attacker and defender's HP in the battle state
-                //attacker.hp = result.attacker.remaining_hp;
-                selectedPokemon.hp=result.attacker.remaining_hp;
-                //defender.hp = result.defender.remaining_hp;
-                opponentPokemon.hp=result.defender.remaining_hp;
-
-                // Update remaining move uses for the attacker
+                // Update Pokémon HP and move remaining uses
+                selectedPokemon.hp = result.attacker.remaining_hp;
+                opponentPokemon.hp = result.defender.remaining_hp;
                 pokemonMove.remaining_uses = result.attacker_move.remaining_uses;
+
+                // Update the usedSkills array
+                const skillIndex = usedSkills.findIndex(skill => skill.move_id === pokemonMove.move_id);
+                if (skillIndex === -1) {
+                    // Add new move if not already tracked
+                    usedSkills.push({
+                        pokemon_id: pokemonMove.pokemon_id,
+                        move_id: pokemonMove.move_id,
+                        remaining_uses: pokemonMove.remaining_uses
+                    });
+                } else {
+                    // Update remaining uses if the move already exists in the array
+                    usedSkills[skillIndex].remaining_uses = pokemonMove.remaining_uses;
+                }
 
                 // Update health bars
                 updateHealthBars(selectedPokemon.hp, opponentPokemon.hp);
@@ -206,11 +214,11 @@
                 // Check if the battle has ended
                 checkBattleOutcome(selectedPokemon.hp, opponentPokemon.hp);
             } catch (error) {
-                alert(`${error}`);
-                console.error('Error using move:', error);
                 alert('Failed to use the move. Please try again.');
+                console.error('Error using move:', error);
             }
         }
+
 
         // Function to update health bars visually
         function updateHealthBars(attackerHp, defenderHp) {
@@ -221,16 +229,72 @@
             opponentHealthBar.style.width = `${(defenderHp / opponentPokemon.maxHp) * 100}%`;
         }
 
-        // Function to check battle outcome
-        function checkBattleOutcome(attackerHp, defenderHp) {
+        async function checkBattleOutcome(attackerHp, defenderHp) {
+            const apiUrl = `${baseUrl}/battle/update`;
+            var won=0;
+            let outcomeMessage = '';
             if (attackerHp <= 0) {
-                alert('Your Pokémon fainted! You lost the battle.');
-                // Redirect or handle defeat
+                outcomeMessage = 'Your Pokémon fainted! You lost the battle.';
+                won=0;
             } else if (defenderHp <= 0) {
-                alert('The opposing Pokémon fainted! You won the battle.');
-                // Redirect or handle victory
+                outcomeMessage = 'The opposing Pokémon fainted! You won the battle.';
+                won=1;
+            }
+
+            if (outcomeMessage) {
+                alert(outcomeMessage);
+
+                // Prepare the API payload
+                const payload = {
+                    pokemon: [
+                        {
+                            id: selectedPokemon.id,
+                            remaining_hp: Math.max(attackerHp, 0),
+                        },
+                        {
+                            id: opponentPokemon.id,
+                            remaining_hp: Math.max(defenderHp, 0),
+                        },
+                    ],
+                    skill: usedSkills, // Include all moves used in the battle
+                    trainer_id: trainerId,
+                    opponent_id: opponentPokemon.id,
+                    won: won
+                };
+
+                try {
+                    // Make the API call to update the battle record
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    //console.log('Battle outcome recorded:', result);
+
+                    // Redirect to post-battle page
+                    if (attackerHp <= 0) {
+                        //window.location.href = 'defeat.html'; // Replace with your defeat page
+                        //alert('Your Pokemon Fainted');
+                    } else if (defenderHp <= 0) {
+                        //window.location.href = 'victory.html'; // Replace with your victory page
+                        //alert('You Defeated the Opponent Pokemon');
+                    }
+                } catch (error) {
+                    console.error('Failed to record battle result:', error);
+                    alert('An error occurred while updating the battle result. Please try again.');
+                }
             }
         }
+
+
 
         function runAway() {
             alert('You ran away!');
