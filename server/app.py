@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from sqlalchemy.exc import SQLAlchemyError
 from flask_bcrypt import Bcrypt
 from database_config import init_app, db
@@ -49,6 +49,17 @@ def home():
 
 @app.route('/trainers', methods=['GET'])
 def get_trainers():
+    
+    trainer_id = session.get('trainer_id')
+    trainer = Trainer.query.get(trainer_id)
+
+    if not trainer:
+        return jsonify({"error": "User not authenticated"}), 401
+
+    # 역할별 권한 제한
+    if trainer.role != "Gym Leader":  # 예: Gym Leader만 수정 권한
+        return jsonify({"error": "You do not have permission to modify this data"}), 403
+
     """모든 트레이너 조회"""
     trainers = Trainer.query.all()
     return jsonify([{
@@ -189,6 +200,8 @@ def login():
     # Verify the password
     if not bcrypt.check_password_hash(trainer.password, password):
         return jsonify({"error": "Invalid name or password"}), 401
+    
+    session['trainer_id'] = trainer.id
 
     return jsonify({"message": "Login successful", "trainer_id": trainer.id}), 200
 
@@ -380,8 +393,37 @@ def get_pokemon_by_id(id):
 #     db.session.commit()
 #     return jsonify({'message': 'Pokemon deleted successfully'})
 
+@app.route('/wild-battle-record/trainers/<int:id>', methods=['GET'])
+def get_wild_battle_record(id):
+    """특정 트레이너의 야생 배틀 기록 조회"""
+    records = WildBattleRecord.query.filter_by(trainer_id=id)
+    if not records:
+        return jsonify({'message': "You don't have any records"}), 404
+    return jsonify([
+        {
+            "name": record.name,
+            "level": record.level,
+            "result": record.result,
+            "created_at": record.created_at
+        }
+        for record in records
+    ])
 
-
+@app.route('/gym-battle-record/trainers/<int:id>', methods=['GET'])
+def get_gym_battle_record(id):
+    """특정 트레이너의 관장 배틀 기록 조회"""
+    records = GymBattleRecord.query.filter_by(trainer_id=id)
+    if not records:
+        return jsonify({'message': "You don't have any records"}), 404
+    return jsonify([
+        {
+            "name": record.gym_leader_name,
+            "badges": record.gym_leader_badges,
+            "result": record.result,
+            "created_at": record.created_at
+        }
+        for record in records
+    ])
 
 
 @app.route('/trainers/<int:trainer_id>/pokemon/<int:pokemon_id>/moves', methods=['GET'])
@@ -759,7 +801,7 @@ def use_skill():
 
 @app.route('/battle/update', methods=['POST'])
 def update_battle_results():
-    """배틀 종료 후 포켓몬 HP, exp, level, 스킬 remaining_uses 업데이트"""
+    """관장 배틀 종료 후 포켓몬 HP, exp, level, 스킬 remaining_uses 업데이트"""
     try:
         # 클라이언트로부터 받은 데이터
         data = request.json
@@ -831,7 +873,106 @@ def update_battle_results():
                 "badges": badges + 1,
             })
         
-    
+        
+        # record 기록
+        opponent = Trainer.query.get(opponent_id)
+        new_record = GymBattleRecord(
+            trainer_id=trainer_id,
+            gym_leader_id=opponent_id,
+            gym_leader_name=opponent.name,
+            gym_leader_badges=opponent.gym_leader_badges,
+            result= "WIN" if won else "LOSE"
+        )
+        db.session.add(new_record)
+        
+       
+        # 변경 사항 커밋
+        db.session.commit()
+        return jsonify({"message": "Battle results updated successfully"}), 200
+
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500
+
+
+@app.route('/wild-battle/update', methods=['POST'])
+def update_wild_battle_results():
+    """배틀 종료 후 포켓몬 HP, exp, level, 스킬 remaining_uses 업데이트"""
+    try:
+        # 클라이언트로부터 받은 데이터
+        data = request.json
+
+        # 1. 포켓몬 업데이트
+        pokemon_updates = data.get('pokemons')  # 포켓몬 HP 업데이트 정보
+        if pokemon_updates:
+            for pokemon in pokemon_updates:
+                pokemon_entry = Pokemon.query.get(pokemon['id'])
+                pokedex_entry = PokeDex.query.get(pokemon_entry.pokedex_id)
+                
+                new_exp = pokemon_entry.experience + 20
+                new_level = pokemon_entry.level
+                level_up_exp = pokemon_entry.level * (pokedex_entry.att + pokedex_entry.def_stat + pokedex_entry.spd + pokedex_entry.hp_stat)
+                if level_up_exp < pokemon_entry.experience + 20: 
+                    new_level += 1
+                    new_exp = (pokemon_entry.experience + 20) - level_up_exp
+                
+                db.session.query(Pokemon).filter_by(id=pokemon['id']).update({
+                    "hp": pokemon['remaining_hp'],
+                    "experience": new_exp,
+                    "level": new_level
+                })
+                
+
+        # 2. 스킬 remaining_uses 업데이트
+        skill_updates = data.get('skills')  # 스킬 remaining_uses 업데이트 정보
+        if skill_updates:
+            for skill in skill_updates:
+                db.session.query(PokemonMove).filter_by(
+                    pokemon_id=skill['pokemon_id'],
+                    move_id=skill['move_id']
+                ).update({
+                    "remaining_uses": skill['remaining_uses']
+                })
+        
+        # 상대 트레이너 포켓몬들 기술 횟수 풀로 채우기
+        trainer_id = data.get('trainer_id')
+        pokemon = data.get('pokemon')
+        result = data.get('result')
+        
+        pokemons = Pokemon.query.filter_by(trainer_id = opponent_id).all()
+        pokemon_moves = db.session.query(
+            PokemonMove.pokemon_id,
+            PokemonMove.move_id,
+            PokemonMove.remaining_uses,
+            Move.pp.label("max_pp")
+        ).join(
+            Move, PokemonMove.move_id == Move.id
+        ).filter(
+            PokemonMove.pokemon_id.in_([pokemon.id for pokemon in pokemons])
+        ).all()
+        
+        moves_by_pokemon = defaultdict(list)
+        for move in pokemon_moves:
+            moves_by_pokemon[move.pokemon_id].append(move)
+
+        for pokemon in pokemons:
+            # 스킬 remaining_uses 갱신
+            for move in moves_by_pokemon[pokemon.id]:
+                db.session.query(PokemonMove).filter_by(
+                    pokemon_id=move.pokemon_id,
+                    move_id=move.move_id
+                ).update({"remaining_uses": move.max_pp})
+        
+        
+        new_record = WildBattleRecord(
+            trainer_id=trainer_id,
+            pokemon_id=pokemon['pokemon_id'],
+            poekmon_name=Pokemon.query.get(pokemon['pokemon_id']).name,
+            pokemon_level=pokemon['level'],
+            result=result
+        )
+        db.session.add(new_record)
+            
         # 변경 사항 커밋
         db.session.commit()
         return jsonify({"message": "Battle results updated successfully"}), 200
@@ -839,6 +980,7 @@ def update_battle_results():
     except Exception as e:
         error_trace = traceback.format_exc()
         return jsonify({"error": str(e), "trace": error_trace}), 500     
+     
 
 
 @app.route('/trainers/<int:trainer_id>/heal', methods=['GET'])

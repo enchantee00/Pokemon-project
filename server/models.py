@@ -74,7 +74,8 @@ class WildBattleRecord(db.Model):
     __tablename__ = 'wildbattlerecords'
     id = db.Column(db.Integer, primary_key=True)
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainers.id'), nullable=False)
-    pokemon_id = db.Column(db.Integer, db.ForeignKey('pokemon.id'), nullable=False)
+    pokemon_name = db.Column(db.String(255), nullable=False)
+    pokemon_level = db.Column(db.Integer, default=1)
     result = db.Column(db.String(50), nullable=False)  # WIN, LOSE, or Capture
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
@@ -83,6 +84,8 @@ class GymBattleRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainers.id'), nullable=False)
     gym_leader_id = db.Column(db.Integer, db.ForeignKey('trainers.id'), nullable=False)
+    gym_leader_name = db.Column(db.String(255), nullable=False)
+    gym_leader_badges = db.Column(db.Integer, default=0)
     result = db.Column(db.String(50), nullable=False)  # WIN or LOSE
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
