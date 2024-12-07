@@ -29,15 +29,7 @@
                 }
 
                 const pokemonData = await response.json();
-                populatePokemon(pokemonData);                
-                const PlayerData = {
-                            pokemons: pokemonData.map(pokemon => ({
-                                ...pokemon,
-                                maxHp: pokemon.hp // Add maxHp field
-                            }))
-                        };
-                localStorage.setItem('PlayerData', JSON.stringify(PlayerData));
-                
+                populatePokemon(pokemonData);
             } catch (error) {
                 console.error('Error fetching Pokémon data:', error);
                 pokemonGrid.innerHTML = '<p>Failed to load Pokémon data. Please try again later.</p>';
@@ -63,28 +55,39 @@
                 `;
                 // Add a click event to select the Pokémon
                 pokemonBox.addEventListener('click', () => {
-                    selectPokemon(pokemon, MAXhp);
+                    deletePokemon(pokemon.id);
                 });
                 pokemonGrid.appendChild(pokemonBox);
             });
         }
 
-        // Store the selected Pokémon's data and navigate to the battle scene
-        function selectPokemon(pokemon, MAXhp) {
-            const selectedPokemon = {
-                id: pokemon.id, // Store the Pokémon's ID for querying moves
-                name: pokemon.name,
-                level: pokemon.level,
-                hp: pokemon.hp,
-                maxHp: MAXhp,
-                type1: pokemon.type1,
-                type2: pokemon.type2 || null,
-                frontImg: pokemon.front_img_url,
-                backImg: pokemon.back_img_url,
-                pokedex_id: pokemon.pokedex_id
-            };
-            location.href = 'gymBattleScene.html'; // Redirect to the battle scene
+        // Delete the selected Pokémon and handle response
+        async function deletePokemon(pokemonId) {
+            const apiUrl = `${baseUrl}/pokemon/${pokemonId}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(`bye bye Pokémon released!`);
+
+                // Optionally, refresh the Pokémon list or redirect the user
+                location.href = 'myPokemon.html'; // Redirect to the main page after deletion
+            } catch (error) {
+                console.error('Failed to delete Pokémon:', error);
+                alert('An error occurred while deleting the Pokémon. Please try again.');
+            }
         }
+
 
         // Fetch and render Pokémon on page load
         fetchPokemon();

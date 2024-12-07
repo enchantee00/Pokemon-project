@@ -100,3 +100,9 @@ button {
 button:hover {
     background-color: #45a049;
 }
+.logo {
+    display: block;
+    margin: 0 auto;
+    width: 300px; /* Adjust as needed */
+    height: auto;
+}
