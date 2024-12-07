@@ -96,27 +96,11 @@
                 
                 // Update button click logic
                 moveButton.onclick = async () => {
-                    // Create attacker, pokemonMove, and defender objects
-                    // const attacker = {
-                    //     id: selectedPokemon.id,
-                    //     pokedex_id: selectedPokemon.pokedex_id,
-                    //     level: selectedPokemon.level,
-                    //     hp: selectedPokemon.hp
-                    // };
-
                     const pokemonMove = {
                         move_id: move.move_id,
                         pokemon_id: selectedPokemon.id,
                         remaining_uses: move.remaining_uses
                     };
-
-                    // const defender = {
-                    //     id: opponentPokemon.id,
-                    //     pokedex_id: opponentPokemon.pokedex_id,
-                    //     level: opponentPokemon.level,
-                    //     hp: opponentPokemon.hp,
-                    //     name: opponentPokemon.name
-                    // };
 
                     // Use the move and update remaining uses
                     await useMove(move.name, pokemonMove);
@@ -231,7 +215,7 @@
         }
 
         async function checkBattleOutcome(attackerHp, defenderHp) {
-            const apiUrl = `${baseUrl}/battle/update`;
+            const apiUrl = `${baseUrl}/wild-battle/update`;
             
             let outcomeMessage = '';
             if (attackerHp <= 0) {
@@ -256,7 +240,7 @@
                     skills: usedSkills, // Include all moves used in the battle
                     trainer_id: trainerId,
                     pokemon:{
-                        pokemon_id: opponentPokemon.id,
+                        name: opponentPokemon.name,
                         level: opponentPokemon.level
                     },
                     result: outcome
@@ -356,6 +340,7 @@
                     await checkBattleOutcome(selectedPokemon.hp, opponentPokemon.hp);
                 }
             } catch (error) {
+                alert(`Error name: ${error}!`);
                 alert("Failed to catch the Pokémon. Please try again.");
                 console.error("Error catching Pokémon:", error);
             }
