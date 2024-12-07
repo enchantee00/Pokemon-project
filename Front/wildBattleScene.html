@@ -35,7 +35,8 @@
         <!-- Action Menu -->
         <div class="action-menu">
             <button onclick="showMoves()">Moves</button>
-            <button onclick="runAway()">Run</button>
+            <button onclick="pokeball()">Catch</button>
+            <button onclick="runAway()">Run</button>           
         </div>
 
         <!-- Moves Menu -->
@@ -105,7 +106,7 @@
 
                     const pokemonMove = {
                         move_id: move.move_id,
-                        pokemon_id: selectedPokemon.pokedex_id,
+                        pokemon_id: selectedPokemon.id,
                         remaining_uses: move.remaining_uses
                     };
 
@@ -231,14 +232,14 @@
 
         async function checkBattleOutcome(attackerHp, defenderHp) {
             const apiUrl = `${baseUrl}/battle/update`;
-            //var won=0;
+            
             let outcomeMessage = '';
             if (attackerHp <= 0) {
                 outcomeMessage = 'Your Pokémon fainted! You lost the battle.';
-                //won=0;
+                const outcome="LOST";
             } else if (defenderHp <= 0) {
                 outcomeMessage = 'The opposing Pokémon fainted! You won the battle.';
-                //won=1;
+                const outcome="WON";
             }
 
             if (outcomeMessage) {
@@ -254,8 +255,11 @@
                     ],
                     skills: usedSkills, // Include all moves used in the battle
                     trainer_id: trainerId,
-                    opponent_id: 0,
-                    won: 0
+                    pokemon:{
+                        pokemon_id: opponentPokemon.id,
+                        level: opponentPokemon.level
+                    },
+                    result: outcome
                 };
 
                 try {
@@ -291,11 +295,70 @@
             }
         }
 
-
-
         function runAway() {
             alert('You ran away!');
             window.location.href = 'main.html'; // Navigate back to the main page
+        }
+
+        async function pokeball() {
+            try {
+                // Construct the body for the API call
+                const body = {
+                    trainer_id: localStorage.getItem('trainer_id'), // Retrieve the trainer's ID from localStorage
+                    attacker: {
+                        id: selectedPokemon.id,
+                        pokedex_id: selectedPokemon.pokedex_id,
+                        level: selectedPokemon.level,
+                        hp: selectedPokemon.hp,
+                    },
+                    defender: {
+                        id: opponentPokemon.id,
+                        pokedex_id: opponentPokemon.pokedex_id,
+                        level: opponentPokemon.level,
+                        hp: opponentPokemon.hp,
+                    },
+                };
+
+                // Make the API call to catch the Pokémon
+                const response = await fetch(`${baseUrl}/catch`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // Handle response based on the `caught` value
+                if (result.caught === 1) {
+                    // Pokémon successfully caught
+                    alert(result.message);
+                    location.href = 'main.html'; // Redirect to main page after catching the Pokémon
+                } else if (result.caught === -1) {
+                    alert(result.message);
+                } else if (result.caught === 0) {
+                    // Failed to catch, opponent attacks back
+                    alert("You failed to catch the Pokémon!");
+
+                    // Update HP based on the opponent's counterattack
+                    selectedPokemon.hp = result.attacker.remaining_hp;
+
+                    if (result.defender_move && result.defender_move.move_name) {
+                        alert(`The opponent counterattacked with ${result.defender_move.move_name}!`);
+                    }
+
+                    // Call `checkBattleOutcome` to evaluate the battle state
+                    await checkBattleOutcome(selectedPokemon.hp, opponentPokemon.hp);
+                }
+            } catch (error) {
+                alert("Failed to catch the Pokémon. Please try again.");
+                console.error("Error catching Pokémon:", error);
+            }
         }
         // Fetch and display moves on page load
         fetchMoves();
