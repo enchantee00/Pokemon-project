@@ -18,15 +18,13 @@
 
     <script>
         const baseUrl = 'http://54.180.179.1:5000'; // Replace with your API base URL
-        
-        //const MAXhp = (hp_stat, level) => Math.floor(((2 * hp_stat + 100) * level) / 100) + 10;
 
         async function startBattle(battleType) {
+            const trainerId = localStorage.getItem('trainer_id'); // Retrieve the trainer_id from localStorage
+
             if (battleType === 'wild') {
                 try {
                     // Fetch a random wild Pokémon based on the trainer's badge level
-                    //const badgeId = 0; // Replace with the dynamic badge ID if available
-                    const trainerId = localStorage.getItem('trainer_id'); // Retrieve the trainer_id from localStorage
                     const response = await fetch(`${baseUrl}/wild-pokemon/trainer/${trainerId}`);
 
                     if (!response.ok) {
@@ -37,7 +35,7 @@
                     console.log('Wild Pokémon Data:', opponentPokemon);
 
                     // Calculate MAXhp for the wild Pokémon
-                    opponentPokemon.maxHp = opponentPokemon.hp
+                    opponentPokemon.maxHp = opponentPokemon.hp;
 
                     // Save wild Pokémon data to localStorage
                     localStorage.setItem('opponentPokemon', JSON.stringify(opponentPokemon));
@@ -49,11 +47,40 @@
                     alert('Failed to fetch wild Pokémon. Please try again.');
                 }
             } else if (battleType === 'gym') {
-                // For gym battles, just store the battle type and redirect
-                localStorage.setItem('battle_type', battleType);
-                location.href = 'gymChoosePokemon.html';
+                try {
+                    // Fetch Gym Leader data
+                    const response = await fetch(`${baseUrl}/battle/trainer/${trainerId}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const gymBattleData = await response.json(); // Get Gym Leader and Pokémon data
+                    console.log('Gym Battle Data:', gymBattleData);
+
+                    // Extract Gym Leader and Pokémon details
+                    const gymLeader = gymBattleData.opponent;
+                    const gymPokemons = gymBattleData.pokemons;
+
+                    // Prepare and save Gym Leader data
+                    const opponentData = {
+                        gymLeader,
+                        pokemons: gymPokemons.map(pokemon => ({
+                            ...pokemon,
+                            maxHp: pokemon.hp // Add maxHp field
+                        }))
+                    };
+                    localStorage.setItem('opponentGymData', JSON.stringify(opponentData));
+
+                    // Redirect to the Pokémon list page for Gym battle
+                    location.href = 'gymChoosePokemon.html';
+                } catch (error) {
+                    console.error('Error fetching Gym Leader data:', error);
+                    alert('Failed to fetch Gym Leader data. Please try again.');
+                }
             }
         }
+
     </script>
 </body>
 </html>
