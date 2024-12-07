@@ -50,15 +50,15 @@ def home():
 @app.route('/trainers', methods=['GET'])
 def get_trainers():
     
-    trainer_id = session.get('trainer_id')
-    trainer = Trainer.query.get(trainer_id)
+    # trainer_id = session.get('trainer_id')
+    # trainer = Trainer.query.get(trainer_id)
 
-    if not trainer:
-        return jsonify({"error": "User not authenticated"}), 401
+    # if not trainer:
+    #     return jsonify({"error": "User not authenticated"}), 401
 
-    # 역할별 권한 제한
-    if trainer.role != "Gym Leader":  # 예: Gym Leader만 수정 권한
-        return jsonify({"error": "You do not have permission to modify this data"}), 403
+    # # 역할별 권한 제한
+    # if trainer.role != "Gym Leader":  # 예: Gym Leader만 수정 권한
+    #     return jsonify({"error": "You do not have permission to modify this data"}), 403
 
     """모든 트레이너 조회"""
     trainers = Trainer.query.all()
@@ -201,7 +201,7 @@ def login():
     if not bcrypt.check_password_hash(trainer.password, password):
         return jsonify({"error": "Invalid name or password"}), 401
     
-    session['trainer_id'] = trainer.id
+    # session['trainer_id'] = trainer.id
 
     return jsonify({"message": "Login successful", "trainer_id": trainer.id}), 200
 
@@ -401,8 +401,8 @@ def get_wild_battle_record(id):
         return jsonify({'message': "You don't have any records"}), 404
     return jsonify([
         {
-            "name": record.name,
-            "level": record.level,
+            "name": record.pokemon_name,
+            "level": record.pokemon_level,
             "result": record.result,
             "created_at": record.created_at
         }
@@ -524,7 +524,7 @@ def catch_pokemon():
         attacker = data['attacker']
         defender = data['defender']
 
-        wild_pokemon_id = defender['pokemon_id']
+        wild_pokemon_id = defender['id']
         wild_pokemon = Pokemon.query.get(wild_pokemon_id)
         if not wild_pokemon or wild_pokemon.trainer_id != 0:
             return jsonify({"error": "Wild Pokemon not found"}), 404
@@ -576,14 +576,16 @@ def catch_pokemon():
             selected_move = random.choice(moves)
             opponent_move = selected_move.name
             
+            attacker_pokedex = PokeDex.query.get(attacker['pokedex_id']) 
+            defender_pokedex = PokeDex.query.get(defender['pokedex_id']) 
+            
             # 데미지 계산
             effectiveness_type1 = db.session.query(TypeEffectiveness.effectiveness).filter_by(
                 attack=selected_move.type, defend=attacker_pokedex.type1).scalar() or 1.0
             effectiveness_type2 = db.session.query(TypeEffectiveness.effectiveness).filter_by(
                 attack=selected_move.type, defend=attacker_pokedex.type2).scalar() or 1.0
             
-            attacker_pokedex = PokeDex.query.get(attacker['pokedex_id']) 
-            defender_pokedex = PokeDex.query.get(defender['pokedex_id']) 
+            
 
             damage = calculate_damage(defender_pokedex, attacker_pokedex, level, selected_move, effectiveness_type1, effectiveness_type2)
             print("opponent attack :", damage)
@@ -606,8 +608,8 @@ def catch_pokemon():
             })
 
     except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500    
 
 
 def calculate_damage(attacker, defender, level, move, effectiveness_type1, effectiveness_type2):
@@ -939,35 +941,9 @@ def update_wild_battle_results():
         pokemon = data.get('pokemon')
         result = data.get('result')
         
-        pokemons = Pokemon.query.filter_by(trainer_id = opponent_id).all()
-        pokemon_moves = db.session.query(
-            PokemonMove.pokemon_id,
-            PokemonMove.move_id,
-            PokemonMove.remaining_uses,
-            Move.pp.label("max_pp")
-        ).join(
-            Move, PokemonMove.move_id == Move.id
-        ).filter(
-            PokemonMove.pokemon_id.in_([pokemon.id for pokemon in pokemons])
-        ).all()
-        
-        moves_by_pokemon = defaultdict(list)
-        for move in pokemon_moves:
-            moves_by_pokemon[move.pokemon_id].append(move)
-
-        for pokemon in pokemons:
-            # 스킬 remaining_uses 갱신
-            for move in moves_by_pokemon[pokemon.id]:
-                db.session.query(PokemonMove).filter_by(
-                    pokemon_id=move.pokemon_id,
-                    move_id=move.move_id
-                ).update({"remaining_uses": move.max_pp})
-        
-        
         new_record = WildBattleRecord(
             trainer_id=trainer_id,
-            pokemon_id=pokemon['pokemon_id'],
-            poekmon_name=Pokemon.query.get(pokemon['pokemon_id']).name,
+            pokemon_name=pokemon['name'],
             pokemon_level=pokemon['level'],
             result=result
         )
