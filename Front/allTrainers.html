@@ -11,6 +11,22 @@
             margin: 20px;
             padding: 0;
         }
+        .button-container {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -35,6 +51,10 @@
 </head>
 <body>
     <h1>All Trainers</h1>
+    <div class="button-container">
+        <!-- New "Alter Trainers" Button -->
+        <button onclick="location.href='alterTrainer.html'">Alter Trainers</button>
+    </div>
     <table id="trainers-table">
         <thead>
             <tr>
@@ -60,9 +80,9 @@
                 const response = await fetch(`${baseUrl}/trainers`, {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    credentials: 'include'
+                    credentials: 'include',
                 });
 
                 if (!response.ok) {
@@ -100,3 +120,4 @@
     </script>
 </body>
 </html>
+
