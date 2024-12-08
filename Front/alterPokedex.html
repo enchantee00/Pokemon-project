@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alter Pokedex Entry</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alter Pokedex Entry</h1>
+    <form id="alterPokedexForm">
+        <label for="pokemonId">Pokémon ID:</label>
+        <input type="number" id="pokemonId" placeholder="Enter Pokémon ID" required>
+
+        <label for="hp_stat">HP Stat:</label>
+        <input type="number" id="hp_stat" placeholder="Enter HP Stat" required>
+
+        <label for="att">Attack Stat:</label>
+        <input type="number" id="att" placeholder="Enter Attack Stat" required>
+
+        <label for="def_stat">Defense Stat:</label>
+        <input type="number" id="def_stat" placeholder="Enter Defense Stat" required>
+
+        <label for="spd">Speed Stat:</label>
+        <input type="number" id="spd" placeholder="Enter Speed Stat" required>
+
+        <button type="button" onclick="alterPokedex()">Alter Entry</button>
+    </form>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with actual base URL
+
+        // Function to alter Pokedex entry
+        async function alterPokedex() {
+            const pokemonId = document.getElementById('pokemonId').value;
+            const hp_stat = document.getElementById('hp_stat').value;
+            const att = document.getElementById('att').value;
+            const def_stat = document.getElementById('def_stat').value;
+            const spd = document.getElementById('spd').value;
+
+            // Validate inputs
+            if (!pokemonId || !hp_stat || !att || !def_stat || !spd) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const payload = {
+                hp_stat: parseInt(hp_stat, 10),
+                att: parseInt(att, 10),
+                def_stat: parseInt(def_stat, 10),
+                spd: parseInt(spd, 10),
+            };
+
+            try {
+                const response = await fetch(`${baseUrl}/pokedex/${pokemonId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token for authorization
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to alter Pokedex entry. Status: ${response.status}, Message: ${errorMessage}`);
+                }
+
+                const result = await response.json();
+                alert(`Pokedex entry updated successfully! Message: ${result.message}`);
+            } catch (error) {
+                console.error('Error updating Pokedex entry:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

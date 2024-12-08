@@ -221,37 +221,6 @@
                 : "You lost the battle. Better luck next time!";
             alert(message);
 
-            // Construct payload to update battle records
-            const battleResult = {
-                pokemon: playerTeam.map(pokemon => ({
-                    id: pokemon.id,
-                    remaining_hp: Math.max(pokemon.hp, 0),
-                })),
-                trainer_id: trainerId,
-                opponent_id: gymBattleData.gym_leader_id, // Assuming the Gym Leader's ID is available
-                won: playerWon ? 1 : 0,
-            };
-
-            try {
-                const response = await fetch(`${baseUrl}/battle/update`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(battleResult),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to update battle result. Status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('Battle result updated successfully:', result);
-            } catch (error) {
-                console.error('Error updating battle result:', error);
-                alert('An error occurred while updating the battle result.');
-            }
-
             // Redirect to the main page
             localStorage.removeItem('opponentGymData'); // Clear Gym battle data
             location.href = 'main.html';
