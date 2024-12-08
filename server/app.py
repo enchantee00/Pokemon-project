@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, session
 from sqlalchemy.exc import SQLAlchemyError
 from flask_bcrypt import Bcrypt
+from flask_session import Session
 from database_config import init_app, db
 from models import Trainer, Pokemon, PokeDex, Move, PokemonMove,WildBattleRecord, GymBattleRecord, TypeEffectiveness
 import random
@@ -8,13 +9,29 @@ import traceback
 from collections import defaultdict
 from sqlalchemy.sql import func
 from flask_cors import CORS
-
+from functools import wraps
+from dotenv import load_dotenv
+import os
 
 
 app = Flask(__name__)
 init_app(app)
 bcrypt = Bcrypt(app)
-CORS(app)  # 모든 도메인에서의 요청 허용
+CORS(app, supports_credentials=True)  # 모든 도메인에서의 요청 허용
+
+
+# app.config['SESSION_TYPE'] = 'filesystem'  # 세션 저장소를 서버 파일로 설정
+# Session(app)
+
+
+# load_dotenv()  # .env 파일 로드
+# app.secret_key = os.getenv('FLASK_SECRET_KEY')
+
+
+# app.config.update({
+#     'SESSION_COOKIE_SECURE': False,      # HTTPS에서만 세션 쿠키 허용
+#     'SESSION_COOKIE_SAMESITE': None
+# })
 
 
 # Badges 값에 따른 레벨 범위
@@ -30,6 +47,27 @@ BADGE_LEVEL_RANGES = {
     8: (41, 53)
 }
 
+current_role = None
+
+# 권한 검증 데코레이터
+def role_required(required_roles):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # trainer_id = session.get('trainer_id')
+            # if not trainer_id:
+            #     return jsonify({'error': 'Authentication required'}), 402
+            
+            # # Fetch user and their role from the database
+            # trainer = Trainer.query.get(trainer_id)
+            print(current_role)
+            if not current_role or current_role not in required_roles:
+                return jsonify({'error': 'Permission denied'}), 403
+            
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
 
 @app.errorhandler(404)
 def not_found_error(e):
@@ -41,37 +79,74 @@ def internal_server_error(e):
     """500 Internal Server Error 처리"""
     return jsonify({"error": "An unexpected error occurred"}), 500
 
+# @app.before_request
+# def debug_session():
+#     print("Session before request:", dict(session))
+#     print("Request Cookies:", request.cookies)
+    
+
+# @app.after_request
+# def after_request(response):
+#     print("Session after request:", dict(session))
+#     return response
+
 
 @app.route('/')
 def home():
     return "Hello! World!"
 
-
+# --- Admin API ---
 @app.route('/trainers', methods=['GET'])
+@role_required(['Admin'])
 def get_trainers():
-    
-    # trainer_id = session.get('trainer_id')
-    # trainer = Trainer.query.get(trainer_id)
-
-    # if not trainer:
-    #     return jsonify({"error": "User not authenticated"}), 401
-
-    # # 역할별 권한 제한
-    # if trainer.role != "Gym Leader":  # 예: Gym Leader만 수정 권한
-    #     return jsonify({"error": "You do not have permission to modify this data"}), 403
-
     """모든 트레이너 조회"""
-    trainers = Trainer.query.all()
-    return jsonify([{
-        'id': trainer.id,
-        'name': trainer.name,
-        'badges': trainer.badges,
-        'role': trainer.role,
-        'created_at': trainer.created_at
-    } for trainer in trainers])
+    try:
+        trainers = Trainer.query.all()
+        return jsonify([{
+            'id': trainer.id,
+            'name': trainer.name,
+            'badges': trainer.badges,
+            'role': trainer.role,
+            'created_at': trainer.created_at
+        } for trainer in trainers])
+    except Exception as e:
+        db.session.rollback()
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500
+    
+    
+@app.route('/trainers/<int:id>', methods=['PUT'])
+@role_required(["Admin"])
+def update_trainer(id):
+    """특정 트레이너 정보 업데이트"""
+    data = request.json
+    trainer = Trainer.query.get(id)
+    if not trainer:
+        return jsonify({'error': 'Trainer not found'}), 404
+
+    trainer.name = data.get('name', trainer.name)
+    trainer.badges = data.get('badges', trainer.badges)
+    trainer.role = data.get('role', trainer.role)
+    db.session.commit()
+    return jsonify({'message': 'Trainer updated successfully'})
 
 
+@app.route('/trainers/<int:id>', methods=['DELETE'])
+@role_required(["Admin"])
+def delete_trainer(id):
+    """특정 트레이너 삭제"""
+    trainer = Trainer.query.get(id)
+    if not trainer:
+        return jsonify({'error': 'Trainer not found'}), 404
+
+    db.session.delete(trainer)
+    db.session.commit()
+    return jsonify({'message': 'Trainer deleted successfully'})
+
+
+# --- Pokemon Manager API ---
 @app.route('/pokemons', methods=['GET'])
+@role_required(['Pokemon Manager'])
 def get_pokemons():
     """모든 포켓몬 조회"""
     pokemons = Pokemon.query.all()
@@ -94,8 +169,187 @@ def get_pokemons():
         'trainer_id': pokemon.trainer_id,
         'created_at': pokemon.created_at
     } for pokemon in pokemons])
+    
+    
+@app.route('/pokedex', methods=['GET'])
+@role_required(['Pokemon Manager'])
+def get_pokedex():
+    """포케덱스에 있는 모든 포켓몬 조회"""
+    pokemons = PokeDex.query.all()
+    
+    return jsonify([{
+        'id': pokemon.id,
+        'name': pokemon.name,
+        'type1': pokemon.type1,
+        'type2': pokemon.type2,
+        'hp_stat': pokemon.hp_stat,
+        'att': pokemon.att,
+        'def_stat': pokemon.def_stat,
+        'spd': pokemon.spd,
+        'front_img': pokemon.front_img,
+        'back_img': pokemon.back_img,
+        'created_at': pokemon.created_at
+    } for pokemon in pokemons])
 
 
+@app.route('/pokedex/<int:pokemon_id>', methods=['PUT'])
+@role_required(['Pokemon Manager'])
+def update_pokemon_stats(pokemon_id):
+    """포케덱스에 있는 포켓몬 스탯 수정"""
+    
+    # 요청 데이터 받기
+    data = request.get_json()
+    
+    # 수정할 값들 (기본값 설정)
+    new_hp_stat = data.get('hp_stat', None)
+    new_att = data.get('att', None)
+    new_def_stat = data.get('def_stat', None)
+    new_spd = data.get('spd', None)
+    
+    # 해당 포켓몬을 찾기
+    pokemon = PokeDex.query.get(pokemon_id)
+    
+    if not pokemon:
+        return jsonify({"error": "Pokemon not found"}), 404
+    
+    # 수정할 값이 제공되었으면 해당 포켓몬의 스탯을 업데이트
+    if new_hp_stat is not None:
+        pokemon.hp_stat = new_hp_stat
+    if new_att is not None:
+        pokemon.att = new_att
+    if new_def_stat is not None:
+        pokemon.def_stat = new_def_stat
+    if new_spd is not None:
+        pokemon.spd = new_spd
+    
+    try:
+        # 데이터베이스 세션 커밋
+        db.session.commit()
+        return jsonify({
+            'id': pokemon.id,
+            'name': pokemon.name,
+            'type1': pokemon.type1,
+            'type2': pokemon.type2,
+            'hp_stat': pokemon.hp_stat,
+            'att': pokemon.att,
+            'def_stat': pokemon.def_stat,
+            'spd': pokemon.spd,
+            'front_img': pokemon.front_img,
+            'back_img': pokemon.back_img,
+            'created_at': pokemon.created_at
+        })
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to update Pokemon stats"}), 500
+
+
+# --- 기술 관리자 API ---
+@app.route('/moves', methods=['GET'])
+@role_required(['Skill Manager'])
+def get_moves():
+    """모든 기술 조회"""
+    moves = Move.query.all()
+    
+    return jsonify([{
+        'id': move.id,
+        'name': move.name,
+        'type': move.type,
+        'power': move.power,
+        'pp': move.pp,
+        'accuracy': move.accuracy
+    } for move in moves])
+
+@app.route('/moves/<int:move_id>', methods=['PUT'])
+@role_required(['Skill Manager'])
+def update_move(move_id):
+    """기술의 스탯 수정"""
+    
+    # 요청 데이터 받기
+    data = request.get_json()
+    
+    # 수정할 값들 (기본값 설정)
+    new_power = data.get('power', None)
+    new_pp = data.get('pp', None)
+    new_accuracy = data.get('accuracy', None)
+    
+    # 해당 기술을 찾기
+    move = Move.query.get(move_id)
+    
+    if not move:
+        return jsonify({"error": "Move not found"}), 404
+    
+    # 수정할 값이 제공되었으면 해당 기술의 스탯을 업데이트
+    if new_power is not None:
+        move.power = new_power
+    if new_pp is not None:
+        move.pp = new_pp
+    if new_accuracy is not None:
+        move.accuracy = new_accuracy
+    
+    try:
+        # 데이터베이스 세션 커밋
+        db.session.commit()
+        return jsonify({
+            'id': move.id,
+            'name': move.name,
+            'type': move.type,
+            'power': move.power,
+            'pp': move.pp,
+            'accuracy': move.accuracy
+        })
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to update move"}), 500
+
+
+@app.route('/typeeffectiveness', methods=['GET'])
+@role_required(['Skill Manager'])
+def get_type_effectiveness():
+    """모든 타입 효과 조회"""
+    effectiveness = TypeEffectiveness.query.all()
+    
+    return jsonify([{
+        'attack': item.attack,
+        'defend': item.defend,
+        'effectiveness': item.effectiveness
+    } for item in effectiveness])
+
+
+
+@app.route('/typeeffectiveness/<attack_type>/<defend_type>', methods=['PUT'])
+@role_required(['Skill Manager'])
+def update_type_effectiveness(attack_type, defend_type):
+    """타입 효과 수정"""
+    
+    # 요청 데이터 받기
+    data = request.get_json()
+    new_effectiveness = data.get('effectiveness', None)
+    
+    # 해당 타입 효과를 찾기
+    effectiveness = TypeEffectiveness.query.filter_by(attack=attack_type, defend=defend_type).first()
+    
+    if not effectiveness:
+        return jsonify({"error": "Type effectiveness not found"}), 404
+    
+    # 수정할 값이 제공되었으면 해당 타입 효과를 업데이트
+    if new_effectiveness is not None:
+        effectiveness.effectiveness = new_effectiveness
+    
+    try:
+        # 데이터베이스 세션 커밋
+        db.session.commit()
+        return jsonify({
+            'attack': effectiveness.attack,
+            'defend': effectiveness.defend,
+            'effectiveness': effectiveness.effectiveness
+        })
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to update type effectiveness"}), 500
+
+
+
+# --- Trainer API ---
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
@@ -184,43 +438,35 @@ def signup():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    name = data.get('name')
-    password = data.get('password')
+        name = data.get('name')
+        password = data.get('password')
 
-    if not name or not password:
-        return jsonify({"error": "Name and password are required"}), 400
+        if not name or not password:
+            return jsonify({"error": "Name and password are required"}), 400
 
-    # Check if trainer exists
-    trainer = Trainer.query.filter_by(name=name).first()
-    if not trainer:
-        return jsonify({"error": "Invalid name or password"}), 401
+        # Check if trainer exists
+        trainer = Trainer.query.filter_by(name=name).first()
+        if not trainer:
+            return jsonify({"error": "Invalid name or password"}), 401
 
-    # Verify the password
-    if not bcrypt.check_password_hash(trainer.password, password):
-        return jsonify({"error": "Invalid name or password"}), 401
+        # Verify the password
+        if not bcrypt.check_password_hash(trainer.password, password):
+            return jsonify({"error": "Invalid name or password"}), 401
+        
+        global current_role
+        current_role = trainer.role
+
+        return jsonify({"message": "Login successful", "trainer_id": trainer.id}), 200
     
-    # session['trainer_id'] = trainer.id
-
-    return jsonify({"message": "Login successful", "trainer_id": trainer.id}), 200
-
-
-
+    except Exception as e:
+        db.session.rollback()
+        error_trace = traceback.format_exc()
+        return jsonify({"error": str(e), "trace": error_trace}), 500
 
 
-# @app.route('/trainers', methods=['POST'])
-# def add_trainer():
-#     """새 트레이너 추가"""
-#     data = request.json
-#     trainer = Trainer(
-#         name=data['name'],
-#         badges=data.get('badges', 0),
-#         role=data.get('role')
-#     )
-#     db.session.add(trainer)
-#     db.session.commit()
-#     return jsonify({'message': 'Trainer added successfully', 'id': trainer.id}), 201
 
 @app.route('/trainers/<int:id>', methods=['GET'])
 def get_trainer(id):
@@ -236,30 +482,10 @@ def get_trainer(id):
         'created_at': trainer.created_at
     })
 
-# @app.route('/trainers/<int:id>', methods=['PUT'])
-# def update_trainer(id):
-#     """특정 트레이너 정보 업데이트"""
-#     data = request.json
-#     trainer = Trainer.query.get(id)
-#     if not trainer:
-#         return jsonify({'error': 'Trainer not found'}), 404
 
-#     trainer.name = data.get('name', trainer.name)
-#     trainer.badges = data.get('badges', trainer.badges)
-#     trainer.role = data.get('role', trainer.role)
-#     db.session.commit()
-#     return jsonify({'message': 'Trainer updated successfully'})
 
-# @app.route('/trainers/<int:id>', methods=['DELETE'])
-# def delete_trainer(id):
-#     """특정 트레이너 삭제"""
-#     trainer = Trainer.query.get(id)
-#     if not trainer:
-#         return jsonify({'error': 'Trainer not found'}), 404
 
-#     db.session.delete(trainer)
-#     db.session.commit()
-#     return jsonify({'message': 'Trainer deleted successfully'})
+
 
 # --- Pokemon API ---
 @app.route('/trainers/<int:trainer_id>/pokemon', methods=['GET'])
@@ -311,21 +537,21 @@ def get_pokemon_by_trainer(trainer_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-# @app.route('/pokemon', methods=['POST'])
-# def add_pokemon():
-#     """새 포켓몬 추가"""
-#     data = request.json
-#     pokemon = Pokemon(
-#         pokemon_id=data['pokemon_id'],
-#         name=data['name'],
-#         level=data.get('level', 1),
-#         experience=data.get('experience', 0),
-#         hp=data['hp'],
-#         trainer_id=data['trainer_id']
-#     )
-#     db.session.add(pokemon)
-#     db.session.commit()
-#     return jsonify({'message': 'Pokemon added successfully', 'id': pokemon.id}), 201
+@app.route('/pokemon', methods=['POST'])
+def add_pokemon():
+    """새 포켓몬 추가"""
+    data = request.json
+    pokemon = Pokemon(
+        pokemon_id=data['pokemon_id'],
+        name=data['name'],
+        level=data.get('level', 1),
+        experience=data.get('experience', 0),
+        hp=data['hp'],
+        trainer_id=data['trainer_id']
+    )
+    db.session.add(pokemon)
+    db.session.commit()
+    return jsonify({'message': 'Pokemon added successfully', 'id': pokemon.id}), 201
 
 @app.route('/pokemon/<int:pokemon_id>', methods=['DELETE'])
 def delete_pokemon(pokemon_id):
