@@ -214,9 +214,7 @@
             opponentHealthBar.style.width = `${(defenderHp / opponentPokemon.maxHp) * 100}%`;
         }
 
-        async function checkBattleOutcome(attackerHp, defenderHp) {
-            const apiUrl = `${baseUrl}/wild-battle/update`;
-            
+        async function checkBattleOutcome(attackerHp, defenderHp) { 
             let outcomeMessage = '';
             if (attackerHp <= 0) {
                 outcomeMessage = 'Your Pokémon fainted! You lost the battle.';
@@ -228,23 +226,6 @@
 
             if (outcomeMessage) {
                 alert(outcomeMessage);
-
-                // Prepare the API payload
-                const payload = {
-                    pokemons: [
-                        {
-                            id: selectedPokemon.id,
-                            remaining_hp: Math.max(attackerHp, 0),
-                        },
-                    ],
-                    skills: usedSkills, // Include all moves used in the battle
-                    trainer_id: trainerId,
-                    pokemon:{
-                        name: opponentPokemon.name,
-                        level: opponentPokemon.level
-                    },
-                    result: outcome
-                };
                 
                 // Redirect to post-battle page
                 if (attackerHp <= 0) {
