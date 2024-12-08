@@ -64,6 +64,7 @@
                 if (data.message === 'Login successful') {
                     // Store the trainer ID in local storage (or use it however you like)
                     localStorage.setItem('trainer_id', data.trainer_id);
+                    localStorage.setItem('role', password);
 
                     // Redirect to the main page (or wherever you want to go after login)
                     window.location.href = 'main.html';  // Or use your own redirect URL
