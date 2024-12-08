@@ -783,6 +783,25 @@ def catch_pokemon():
                 trainer_id=trainer_id 
             )
             db.session.add(new_pokemon)
+            
+            moves = db.session.query(
+                PokemonMove.remaining_uses,
+                Move.id.label("move_id"),
+                Move.name,
+                Move.type,
+                Move.power,
+                Move.pp,
+                Move.accuracy
+            ).join(Move, PokemonMove.move_id == Move.id).filter(PokemonMove.pokemon_id == wild_pokemon_id).all()
+
+            # Add the moves to PokemonMoves
+            for move in moves:
+                new_pokemon_move = PokemonMove(
+                    pokemon_id=new_pokemon.id,
+                    move_id=move.move_id,
+                    remaining_uses=move.pp  # Set to the move's max PP
+                )
+                db.session.add(new_pokemon_move)
             db.session.commit()
             return jsonify({"caught":1, "message": "Pokemon caught successfully!"})
         
