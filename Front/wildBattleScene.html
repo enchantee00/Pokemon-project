@@ -288,7 +288,7 @@
             try {
                 // Construct the body for the API call
                 const body = {
-                    trainer_id: localStorage.getItem('trainer_id'), // Retrieve the trainer's ID from localStorage
+                    trainer_id: trainerId, // Retrieve the trainer's ID from localStorage
                     attacker: {
                         id: selectedPokemon.id,
                         pokedex_id: selectedPokemon.pokedex_id,
@@ -335,7 +335,8 @@
                     if (result.defender_move && result.defender_move.move_name) {
                         alert(`The opponent counterattacked with ${result.defender_move.move_name}!`);
                     }
-
+                    selectedPokemon.hp=result.attacker.remaining_hp;
+                    updateHealthBars(selectedPokemon.hp, opponentPokemon.hp)
                     // Call `checkBattleOutcome` to evaluate the battle state
                     await checkBattleOutcome(selectedPokemon.hp, opponentPokemon.hp);
                 }

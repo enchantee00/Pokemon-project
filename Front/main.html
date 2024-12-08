@@ -14,10 +14,18 @@
             <button onclick="location.href='battle.html'">Battle</button>
             <button onclick="location.href='login.html'">Log Out</button>
             <button onclick="location.href='myPokemon.html'">My Pokémon</button>
+            <button id="admin-button" onclick="location.href='admin.html'" style="display: none;">Admin</button>
         </div>
     </div>
 
     <script>
+        // Check the user's role from localStorage
+        const role = localStorage.getItem('role');
+
+        // Show the Admin button only if the role is "Admin"
+        if (role === 'Admin') {
+            document.getElementById('admin-button').style.display = 'inline-block';
+        }
         function battle() {
             alert('Navigating to the Battle feature!');
             // Replace the alert with navigation logic if needed
