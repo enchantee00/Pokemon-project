@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alter Move</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alter Move</h1>
+    <form id="alterMoveForm">
+        <label for="moveId">Move ID:</label>
+        <input type="number" id="moveId" placeholder="Enter Move ID" required>
+
+        <label for="power">Power:</label>
+        <input type="number" id="power" placeholder="Enter Power" required>
+
+        <label for="pp">PP:</label>
+        <input type="number" id="pp" placeholder="Enter PP" required>
+
+        <label for="accuracy">Accuracy:</label>
+        <input type="number" id="accuracy" placeholder="Enter Accuracy" required>
+
+        <button type="button" onclick="alterMove()">Alter</button>
+    </form>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Update this with your actual base URL
+
+        // Function to alter a move
+        async function alterMove() {
+            const moveId = document.getElementById('moveId').value;
+            const power = document.getElementById('power').value;
+            const pp = document.getElementById('pp').value;
+            const accuracy = document.getElementById('accuracy').value;
+
+            // Validate input
+            if (!moveId || !power || !pp || !accuracy) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const payload = {
+                power: parseInt(power, 10),
+                pp: parseInt(pp, 10),
+                accuracy: parseFloat(accuracy),
+            };
+
+            try {
+                const response = await fetch(`${baseUrl}/moves/${moveId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token for authorization if required
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to alter move. Status: ${response.status}, Message: ${errorMessage}`);
+                }
+
+                const result = await response.json();
+                alert(`Move updated successfully! Message: ${result.message}`);
+            } catch (error) {
+                console.error('Error updating move:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
+

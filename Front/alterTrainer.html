@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alter Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .alter-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .alter-button:hover {
+            background-color: #45a049;
+        }
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+        }
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alter Trainer</h1>
+    <form id="alterTrainerForm">
+        <label for="trainerId">Trainer ID:</label>
+        <input type="number" id="trainerId" placeholder="Enter Trainer ID" required>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter Trainer Name" required>
+
+        <label for="role">Role:</label>
+        <select id="role" required>
+            <option value="Trainer">Trainer</option>
+            <option value="Admin">Admin</option>
+            <option value="Pokemon Manager">Pokemon Manager</option>
+        </select>
+
+        <label for="badges">Badges:</label>
+        <input type="number" id="badges" placeholder="Enter Number of Badges" required>
+
+        <div class="buttons">
+            <button type="button" class="alter-button" onclick="alterTrainer()">Alter</button>
+            <button type="button" class="delete-button" onclick="deleteTrainer()">Delete</button>
+        </div>
+    </form>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Update this if necessary
+
+        // Function to alter a trainer
+        async function alterTrainer() {
+            const trainerId = document.getElementById('trainerId').value;
+            const name = document.getElementById('name').value;
+            const role = document.getElementById('role').value;
+            const badges = document.getElementById('badges').value;
+
+            // Validate input
+            if (!trainerId || !name || !role || !badges) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            const payload = {
+                name,
+                role,
+                badges: parseInt(badges, 10),
+            };
+
+            try {
+                const response = await fetch(`${baseUrl}/trainers/${trainerId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token for authorization
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to alter trainer. Status: ${response.status}, Message: ${errorMessage}`);
+                }
+
+                const result = await response.json();
+                alert(`Trainer updated successfully! Message: ${result.message}`);
+            } catch (error) {
+                console.error('Error updating trainer:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Function to delete a trainer
+        async function deleteTrainer() {
+            const trainerId = document.getElementById('trainerId').value;
+
+            // Validate input
+            if (!trainerId) {
+                alert('Please enter a Trainer ID to delete!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/trainers/${trainerId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to delete trainer. Status: ${response.status}, Message: ${errorMessage}`);
+                }
+
+                alert(`Trainer with ID ${trainerId} deleted successfully!`);
+                // Optionally clear the form
+                document.getElementById('alterTrainerForm').reset();
+            } catch (error) {
+                console.error('Error deleting trainer:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

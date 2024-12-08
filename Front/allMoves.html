@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Moves</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="header">All Moves</h1>
+    <div class="button-container">
+        <!-- New "Alter Trainers" Button -->
+        <button onclick="location.href='alterMoves.html'">Alter Moves</button>
+    </div>s
+    <table id="moves-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Power</th>
+                <th>PP</th>
+                <th>Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Move rows will be populated here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with actual base URL
+
+        // Fetch and display all moves
+        async function fetchMoves() {
+            try {
+                const response = await fetch(`${baseUrl}/moves`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Include cookies if needed
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch moves. Status: ${response.status}`);
+                }
+
+                const moves = await response.json();
+                const tableBody = document.querySelector('#moves-table tbody');
+
+                // Clear existing rows
+                tableBody.innerHTML = '';
+
+                // Populate the table with move data
+                moves.forEach(move => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${move.id}</td>
+                        <td>${move.name}</td>
+                        <td>${move.type}</td>
+                        <td>${move.power}</td>
+                        <td>${move.pp}</td>
+                        <td>${move.accuracy}</td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching moves:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Call fetchMoves when the page loads
+        window.onload = fetchMoves;
+    </script>
+</body>
+</html>

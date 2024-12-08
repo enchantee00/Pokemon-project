@@ -15,6 +15,8 @@
             <button onclick="location.href='login.html'">Log Out</button>
             <button onclick="location.href='myPokemon.html'">My Pokémon</button>
             <button id="admin-button" onclick="location.href='admin.html'" style="display: none;">Admin</button>
+            <button id="pokemonadmin-button" onclick="location.href='pokemonAdmin.html'" style="display: none;">Pokemon Admin</button>
+            <button id="movesadmin-button" onclick="location.href='movesAdmin.html'" style="display: none;">Moves Admin</button>
         </div>
     </div>
 
@@ -26,6 +28,13 @@
         if (role === 'Admin') {
             document.getElementById('admin-button').style.display = 'inline-block';
         }
+        else if (role === 'Skill Manager'){
+            document.getElementById('movesadmin-button').style.display = 'inline-block';
+        }
+        else if (role === 'Pokemon Manager'){
+            document.getElementById('pokemonadmin-button').style.display = 'inline-block';
+        }
+
         function battle() {
             alert('Navigating to the Battle feature!');
             // Replace the alert with navigation logic if needed
