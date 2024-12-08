@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Pokedex</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        img {
+            width: 50px;
+            height: 50px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="header">All Pokedex Entries</h1>
+    <div class="button-container">
+        <!-- New "Alter Trainers" Button -->
+        <button onclick="location.href='alterPokedex.html'">Alter Pokedex</button>
+    </div>
+    <table id="pokedex-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Type 1</th>
+                <th>Type 2</th>
+                <th>HP</th>
+                <th>Attack</th>
+                <th>Defense</th>
+                <th>Speed</th>
+                <th>Front Image</th>
+                <th>Back Image</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Pokedex entries will be dynamically populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with actual base URL
+
+        // Fetch and display all Pokedex entries
+        async function fetchPokedex() {
+            try {
+                const response = await fetch(`${baseUrl}/pokedex`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token for authorization
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch Pokedex. Status: ${response.status}`);
+                }
+
+                const pokemons = await response.json();
+                const tableBody = document.querySelector('#pokedex-table tbody');
+
+                // Clear any existing rows
+                tableBody.innerHTML = '';
+
+                // Populate the table with Pokedex data
+                pokemons.forEach(pokemon => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${pokemon.id}</td>
+                        <td>${pokemon.name}</td>
+                        <td>${pokemon.type1}</td>
+                        <td>${pokemon.type2 || 'N/A'}</td>
+                        <td>${pokemon.hp_stat}</td>
+                        <td>${pokemon.att}</td>
+                        <td>${pokemon.def_stat}</td>
+                        <td>${pokemon.spd}</td>
+                        <td><img src="${pokemon.front_img}" alt="${pokemon.name} Front"></td>
+                        <td><img src="${pokemon.back_img}" alt="${pokemon.name} Back"></td>
+                        <td>${new Date(pokemon.created_at).toLocaleString()}</td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching Pokedex:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Call fetchPokedex when the page loads
+        window.onload = fetchPokedex;
+    </script>
+</body>
+</html>

@@ -55,29 +55,16 @@
         async function fetchPokemons() {
             try {
                 // Get the authentication token
-                const token = localStorage.getItem('authToken'); // Replace 'authToken' with your token key
-
-                if (!token) {
-                    alert('Authentication token is missing. Please log in again.');
-                    location.href = 'login.html'; // Redirect to login page
-                    return;
-                }
 
                 // Fetch Pokémon data
                 const response = await fetch(`${baseUrl}/pokemons`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Include Bearer token
                     },
                     credentials: 'include'
                 });
 
-                if (response.status === 401) {
-                    alert('Unauthorized. Please log in again.');
-                    location.href = 'login.html'; // Redirect to login page
-                    return;
-                }
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch Pokémon data. Status: ${response.status}`);

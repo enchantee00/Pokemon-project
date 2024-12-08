@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type Effectiveness Matrix</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            text-align: center;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td {
+            color: black; /* Default */
+        }
+        .effectiveness-high {
+            color: red;
+            font-weight: bold;
+        }
+        .effectiveness-low {
+            color: blue;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="header">Type Effectiveness Matrix</h1>
+    <div class="button-container">
+        <!-- New "Alter Trainers" Button -->
+        <button onclick="location.href='alterTypeEffectiveness.html'">Alter Type Matchings</button>
+    </div>
+    <div id="matrix-container">
+        <!-- The type effectiveness matrix will be dynamically generated here -->
+    </div>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with actual base URL
+
+        // Function to fetch type effectiveness data
+        async function fetchTypeEffectiveness() {
+            try {
+                const response = await fetch(`${baseUrl}/typeeffectiveness`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Include cookies if needed
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch type effectiveness data. Status: ${response.status}`);
+                }
+
+                const effectivenessData = await response.json();
+                renderMatrix(effectivenessData);
+            } catch (error) {
+                console.error('Error fetching type effectiveness data:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Function to render the type effectiveness matrix
+        function renderMatrix(data) {
+            // Extract unique types for rows and columns
+            const attackTypes = [...new Set(data.map(item => item.attack))];
+            const defendTypes = [...new Set(data.map(item => item.defend))];
+
+            // Create a table element
+            const table = document.createElement('table');
+
+            // Create the header row
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th>Defend \\ Attack</th>`; // Top-left corner cell
+            attackTypes.forEach(type => {
+                const th = document.createElement('th');
+                th.textContent = type;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Create rows for each defending type
+            defendTypes.forEach(defendType => {
+                const row = document.createElement('tr');
+
+                // First cell: defending type
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = defendType;
+                row.appendChild(rowHeader);
+
+                // Fill in effectiveness values
+                attackTypes.forEach(attackType => {
+                    const cell = document.createElement('td');
+                    const effectiveness = data.find(item =>
+                        item.attack === attackType && item.defend === defendType
+                    )?.effectiveness;
+
+                    if (effectiveness === 2) {
+                        cell.classList.add('effectiveness-high');
+                    } else if (effectiveness === 0.5) {
+                        cell.classList.add('effectiveness-low');
+                    }
+
+                    cell.textContent = effectiveness || '-';
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+
+            // Append the table to the container
+            document.getElementById('matrix-container').appendChild(table);
+        }
+
+        // Call fetchTypeEffectiveness when the page loads
+        window.onload = fetchTypeEffectiveness;
+    </script>
+</body>
+</html>
+

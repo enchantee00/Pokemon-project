@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alter Type Effectiveness</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alter Type Effectiveness</h1>
+    <form id="alterEffectivenessForm">
+        <label for="attackType">Attack Type:</label>
+        <input type="text" id="attackType" placeholder="Enter Attack Type" required>
+
+        <label for="defendType">Defend Type:</label>
+        <input type="text" id="defendType" placeholder="Enter Defend Type" required>
+
+        <label for="effectiveness">Effectiveness:</label>
+        <input type="number" step="0.1" id="effectiveness" placeholder="Enter Effectiveness (e.g., 0.8)" required>
+
+        <button type="button" onclick="alterEffectiveness()">Alter</button>
+    </form>
+
+    <script>
+        const baseUrl = 'http://54.180.179.1:5000'; // Replace with actual base URL
+
+        async function alterEffectiveness() {
+            const attackType = document.getElementById('attackType').value;
+            const defendType = document.getElementById('defendType').value;
+            const effectiveness = parseFloat(document.getElementById('effectiveness').value);
+
+            // Validate input
+            if (!attackType || !defendType || isNaN(effectiveness)) {
+                alert('Please fill in all fields correctly!');
+                return;
+            }
+
+            const payload = { effectiveness };
+
+            try {
+                const response = await fetch(`${baseUrl}/typeeffectiveness/${attackType}/${defendType}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if required
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to alter type effectiveness. Status: ${response.status}, Message: ${errorMessage}`);
+                }
+
+                const result = await response.json();
+                alert(`Effectiveness updated successfully! Message: ${result.message}`);
+                document.getElementById('alterEffectivenessForm').reset(); // Reset the form after success
+            } catch (error) {
+                console.error('Error altering effectiveness:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
